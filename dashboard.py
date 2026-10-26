@@ -72,13 +72,18 @@ st.markdown(
 
 ARQUIVO_BANCO_DADOS = "banco_leads_sdr.csv"
 
-# Base de inicialização limpa trazendo a nova coluna "Status do Lead"
+# Base de inicialização limpa com o Status do Lead incluído de fábrica
 DADOS_INICIAIS = [
     {
-        "Status do Lead": "Aguardando Contato",
-        "CNPJ": "31.862.534/0001-30", "Provedor": "Alpha Fibra Telecom", "Localidade": "Chapecó - SC",
-        "Telefone": "(49) 3321-1000", "Email": "diretoria@alphafibra.com.br", "Responsáveis": "Carlos Silva (Diretor)",
-        "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região", "Produto Olli": "Olli Smart Home"
+        "Status Contato": "Não Chamado",
+        "Provedor": "Alpha Fibra Telecom", 
+        "Responsáveis": "Carlos Silva",
+        "Localidade": "Chapecó - SC",
+        "Telefone": "(49) 3321-1000", 
+        "Email": "diretoria@alphafibra.com.br", 
+        "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região", 
+        "Produto Olli": "Olli Smart Home",
+        "CNPJ": "31.862.534/0001-30"
     }
 ]
 
@@ -86,11 +91,10 @@ def carregar_dados_salvos():
     if os.path.exists(ARQUIVO_BANCO_DADOS):
         try: 
             df_salvo = pd.read_csv(ARQUIVO_BANCO_DADOS)
-            # Garante que se o arquivo foi criado antigo, ele adicione a nova coluna
-            if "Status do Lead" not in df_salvo.columns:
-                df_salvo.insert(0, "Status do Lead", "Aguardando Contato")
             if df_salvo.empty:
                 return pd.DataFrame(DADOS_INICIAIS)
+            if "Status Contato" not in df_salvo.columns:
+                df_salvo.insert(0, "Status Contato", "Não Chamado")
             return df_salvo
         except: 
             return pd.DataFrame(DADOS_INICIAIS)
@@ -99,14 +103,14 @@ def carregar_dados_salvos():
         df_novo.to_csv(ARQUIVO_BANCO_DADOS, index=False)
         return df_novo
 
-def salvar_banco_completo(df_completo):
-    df_completo.to_csv(ARQUIVO_BANCO_DADOS, index=False)
+def salvar_alteracoes_tabela(df_atualizado):
+    df_atualizado.to_csv(ARQUIVO_BANCO_DADOS, index=False)
 
 def gravar_multiplos_leads_no_arquivo(novos_leads):
     df_atual = carregar_dados_salvos()
     df_novos_registros = pd.DataFrame(novos_leads)
     df_consolidado = pd.concat([df_atual, df_novos_registros], ignore_index=True)
-    df_consolidado.drop_duplicates(subset=["CNPJ", "Provedor"], keep="first", inplace=True)
+    df_consolidado.drop_duplicates(subset=["Provedor"], keep="first", inplace=True)
     df_consolidado.to_csv(ARQUIVO_BANCO_DADOS, index=False)
 
 def deletar_lista_leads_do_arquivo(lista_nomes_provedores):
@@ -158,11 +162,11 @@ if verificar_senha():
     st.sidebar.write("---")
     
     st.sidebar.subheader("🎯 Menu de Filtros")
-    # Filtro por Status do Funil de Atendimento
+    
     status_selecionado = st.sidebar.multiselect(
-        "Filtrar por Status do Contato:",
-        options=["Aguardando Contato", "Lead Chamado", "Reunião Agendada"],
-        default=["Aguardando Contato", "Lead Chamado", "Reunião Agendada"]
+        "Filtrar por Status do Lead:",
+        options=["Não Chamado", "Chamado"],
+        default=["Não Chamado", "Chamado"]
     )
     
     situacao_selecionada = st.sidebar.multiselect(
@@ -174,24 +178,26 @@ if verificar_senha():
     st.sidebar.write("---")
     st.sidebar.caption("Divisão de Soluções IXC Soft © 2026")
 
-    # Aplica os filtros laterais combinados na tabela
-    df_filtrado = df[(df["Situação de Mercado"].isin(situacao_selecionada)) & (df["Status do Lead"].isin(status_selecionado))].copy()
+    df_filtrado = df[
+        (df["Situação de Mercado"].isin(situacao_selecionada)) & 
+        (df["Status Contato"].isin(status_selecionado))
+    ].copy()
 
     # =====================================================================
     # CORPO PRINCIPAL DO DASHBOARD
     # =====================================================================
     st.markdown("## 📊 Painel Geral de Prospecção Estratégica")
-    st.markdown("Gerenciamento automatizado de leads ISPs com acompanhamento em tempo real de contatos efetuados.")
+    st.markdown("Gerenciamento automatizado de leads ISPs com status de controle e dores validadas.")
     st.write("---")
 
-    # CARDS DE MÉTRICAS FORMATADOS
+    # CARDS DE MÉTRICAS
     m1, m2, m3 = st.columns(3)
     with m1:
         st.metric(label="Total de ISPs na Base", value=len(df))
     with m2:
-        st.metric(label="Contatados (Lead Chamado)", value=len(df[df['Status do Lead'] == 'Lead Chamado']))
+        st.metric(label="Foco: Olli Smart Home", value=len(df[df['Produto Olli'] == 'Olli Smart Home']))
     with m3:
-        st.metric(label="Aguardando Abordagem", value=len(df[df['Status do Lead'] == 'Aguardando Contato']))
+        st.metric(label="Foco: Olli Habita", value=len(df[df['Produto Olli'] == 'Olli Habita']))
 
     st.write("---")
 
@@ -202,11 +208,12 @@ if verificar_senha():
         st.write("")
         col_btn1, col_btn2 = st.columns()
         with col_btn1:
-            st.markdown("### 📋 Oportunidades Mapeadas & Funil SDR")
+            st.markdown("### 📋 Oportunidades Mapeadas em Lote")
+            st.caption("💡 Dica: Dê dois cliques na célula da coluna 'Status Contato' para alterar o status do lead na hora.")
         with col_btn2:
             executar_busca = st.button("🚀 Executar Nova Varredura", use_container_width=True)
 
-        if executar_busca:
+        if ejecutar_busca:
             nomes_provedores = ["Conecta Sul", "Veloce Fibra", "Horizonte Internet", "Maxnet Telecom", "PrimeLink", "NovaEra ISPs", "TopSpeed Banda Larga", "Nexus Fibra"]
             cidades = ["Joinville - SC", "Blumenau - SC", "Londrina - PR", "Maringá - PR", "Campinas - SP", "Ribeirão Preto - SP", "Caxias do Sul - RS", "Passo Fundo - RS"]
             
@@ -227,3 +234,6 @@ if verificar_senha():
             status_texto.markdown("📡 **Buscando matrizes de acessos e indicadores ANATEL / Reclame Aqui...**")
             for p in range(101):
                 time.sleep(0.01)
+                barra_progresso.progress(p)
+            
+            quantidade_descoberta = random.randint(2, 4)
