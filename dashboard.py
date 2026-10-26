@@ -145,7 +145,8 @@ if verificar_senha():
     # =====================================================================
     with aba_leads:
         st.write("")
-        col_t1, col_t2 = st.columns()
+        # CORREÇÃO DA LINHA 148: Adicionado o número 2 nas colunas
+        col_t1, col_t2 = st.columns(2)
         with col_t1:
             st.subheader("📋 Pipeline de Leads Qualificados")
             st.caption("Gerencie o andamento das prospecções mudando o status diretamente na célula correspondente.")
@@ -190,5 +191,3 @@ if verificar_senha():
                         "Produto Olli": dor_sorteada["produto"],
                         "CNPJ": f"{random.randint(10,99)}.{random.randint(100,999)}.{random.randint(100,999)}/0001-{random.randint(10,99)}",
                         "Clientes Estimados": random.randint(2500, 18000),
-                        "Ticket Médio (R$)": random.choice([69.90, 89.90, 99.90, 149.90])
-                    }
