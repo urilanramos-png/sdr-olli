@@ -22,7 +22,6 @@ def carregar_dados_salvos():
     if os.path.exists(ARQUIVO_BANCO_DADOS):
         try: 
             df_salvo = pd.read_csv(ARQUIVO_BANCO_DADOS)
-            # Garante que as colunas obrigatórias existam
             if df_salvo.empty:
                 return pd.DataFrame(DADOS_INICIAIS)
             return df_salvo
@@ -42,7 +41,6 @@ def gravar_multiplos_leads_no_arquivo(novos_leads):
 
 def deletar_lead_do_arquivo(index_para_deletar):
     df_atual = carregar_dados_salvos()
-    # Remove a linha pelo índice numérico da tabela
     df_atual.drop(index_para_deletar, inplace=True)
     df_atual.reset_index(drop=True, inplace=True)
     df_atual.to_csv(ARQUIVO_BANCO_DADOS, index=False)
@@ -115,7 +113,7 @@ if verificar_senha():
         time.sleep(1.5)
         barra_progresso.progress(70)
         
-        status_texto.markdown("📞 **Etapa 3:** Minerando telefones comerciais de contato e identificando Sócios/Diretores no QSA...")
+        status_texto.markdown("📞 **Etapa 3:** Minerando telefones comerciais de contato e identifying Sócios/Diretores no QSA...")
         time.sleep(1.5)
         barra_progresso.progress(100)
         
@@ -133,9 +131,9 @@ if verificar_senha():
             lead_estruturado = {
                 "CNPJ": cnpj_falso,
                 "Provedor": empresa + " Telecom",
-                "Localidade": city_uf if 'city_uf' in locals() else cidade_uf,
+                "Localidade": cidade_uf,
                 "Telefone": f"({random.randint(11,55)}) 3055-{random.randint(1000,9990)}",
-                "Email": f"contato@ {empresa.lower().replace(' ', '')}.com.br",
+                "Email": f"contato@{empresa.lower().replace(' ', '')}.com.br",
                 "Responsáveis": decisor,
                 "Situação de Mercado": dor_produto["dor"],
                 "Produto Olli": dor_produto["produto"]
@@ -144,7 +142,7 @@ if verificar_senha():
             
         gravar_multiplos_leads_no_arquivo(novos_leads_encontrados)
         status_texto.empty()
-        st.success(f"🔥 Varredura finalizada! **{quantidade_descoberta} novos provedores** salvos permanentemente!")
+        st.success(f"🔥 Varredura finalizada! Novos provedores salvos com sucesso!")
         time.sleep(1)
         st.rerun()
 
@@ -169,7 +167,6 @@ if verificar_senha():
     st.subheader("📋 Lista de Oportunidades Mapeadas em Lote")
     
     if not df_filtrado.empty:
-        # Exibe a tabela interativa normal para visualização e cópia rápida
         st.dataframe(df_filtrado, use_container_width=True)
         
         # Caixa de Ferramenta para Exclusão de Leads
@@ -179,8 +176,7 @@ if verificar_senha():
                 options=df_filtrado["Provedor"].unique()
             )
             if st.button("🚨 Apagar Linha Permanentemente", type="secondary"):
-                # Localiza o índice real daquela linha no banco de dados completo
-                idx_real = df[df["Provedor"] == lead_para_deletar].index[0]
+                idx_real = df[df["Provedor"] == lead_para_deletar].index
                 deletar_lead_do_arquivo(idx_real)
                 st.error(f"🗑️ {lead_para_deletar} removido com sucesso!")
                 time.sleep(1)
@@ -201,3 +197,4 @@ if verificar_senha():
             st.info(
                 f"**Roteiro Comercial Customizado (Pronto para copiar):**\n\n"
                 f"_\"Olá, busco pelo **{lead['Responsáveis']}**. Tudo bem? "
+                f"Aqui é o [Seu Nome] da Olli. Mapeamos o mercado de ISPs em **{lead['Localidade']}** através da nossa inteligência, e identificamos que a **{lead['Provedor']}** hoje possui um cenário de **{lead['Situação de Mercado'].lower()}**. "
