@@ -4,45 +4,11 @@ import random
 import os
 import time
 
-# =====================================================================
-# CONFIGURAÇÃO DE IDENTIDADE VISUAL (CORES OFICIAIS DA OLLI)
-# =====================================================================
+# Configuração inicial da página do Dashboard
 st.set_page_config(
     page_title="Dashboard SDR - Olli IoT", 
     page_icon="🤖", 
     layout="wide"
-)
-
-# Estilização CSS customizada para injetar o Roxo Olli e ajustar as fontes do site
-st.markdown(
-    """
-    <style>
-    /* Cor de fundo principal e da barra lateral */
-    .stApp { background-color: #0F0F12; color: #FFFFFF; }
-    [data-testid="stSidebar"] { background-color: #16161D; }
-    
-    /* Customização dos botões para o Roxo Vibrante da Olli */
-    div.stButton > button:first-child {
-        background-color: #7A28FF !important;
-        color: white !important;
-        border-radius: 20px !important;
-        border: none !important;
-        font-weight: bold !important;
-        padding: 0.5rem 2rem !important;
-    }
-    div.stButton > button:first-child:hover {
-        background-color: #611BD6 !important;
-        box-shadow: 0px 0px 10px #7A28FF;
-    }
-    
-    /* Estilização dos títulos e textos */
-    h1, h2, h3 { font-family: 'Sans-serif'; color: #FFFFFF !important; }
-    
-    /* Alinhamento e cores dos cards informativos */
-    [data-testid="stMetricValue"] { color: #7A28FF !important; font-weight: bold; }
-    </style>
-    """,
-    unsafe_html=True
 )
 
 ARQUIVO_BANCO_DADOS = "banco_leads_sdr.csv"
@@ -106,7 +72,7 @@ if verificar_senha():
     # =====================================================================
     # MARCA OLLI NA BARRA LATERAL
     # =====================================================================
-    st.sidebar.markdown("<h1 style='color: #7A28FF; font-family: sans-serif; margin-bottom: 0px;'>Olli</h1>", unsafe_html=True)
+    st.sidebar.title("Olli")
     st.sidebar.caption("Ecossistema IXC Soft")
     st.sidebar.write("---")
 
@@ -165,9 +131,9 @@ if verificar_senha():
             lead_estruturado = {
                 "CNPJ": cnpj_falso,
                 "Provedor": empresa + " Telecom",
-                "Localidade": city_uf if 'city_uf' in locals() else cidade_uf,
+                "Localidade": cidade_uf,
                 "Telefone": f"({random.randint(11,55)}) 3055-{random.randint(1000,9990)}",
-                "Email": f"contato@ {empresa.lower().replace(' ', '')}.com.br",
+                "Email": f"contato@{empresa.lower().replace(' ', '')}.com.br",
                 "Responsáveis": decisor,
                 "Situação de Mercado": dor_produto["dor"],
                 "Produto Olli": dor_produto["produto"]
@@ -216,3 +182,23 @@ if verificar_senha():
             st.write("")
             if st.button("🗑️ Excluir Clientes Selecionados", type="secondary", use_container_width=True):
                 deletar_lista_leads_do_arquivo(leads_selecionados)
+                st.error("Leads removidos com sucesso!")
+                time.sleep(1)
+                st.rerun()
+    else:
+        st.warning("Nenhum provedor disponível com os filtros atuais.")
+
+    st.write("---")
+    
+    # Seção de Script de Abordagem Comercial Customizado (Ajustada com leitura direta e segura de índice zero)
+    st.subheader("⚡ Script de Abordagem para o Lead Selecionado")
+    if not df_filtrado.empty:
+        provedor_escolhido = st.selectbox("Escolha um provedor para ver o Script do SDR:", df_filtrado["Provedor"].unique())
+        if provedor_escolhido:
+            # Captura a primeira linha correspondente de forma segura
+            sub_df = df_filtrado[df_filtrado["Provedor"] == provedor_escolhido]
+            
+            v_resp = str(sub_df["Responsáveis"].values[0])
+            v_local = str(sub_df["Localidade"].values[0])
+            v_prov = str(sub_df["Provedor"].values[0])
+            v_sit = str(sub_df["Situação de Mercado"].values[0]).lower()
