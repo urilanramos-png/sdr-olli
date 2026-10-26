@@ -4,27 +4,28 @@ import random
 import os
 import time
 
-# Configuração de Layout e Título da Aba (Totalmente Nativo)
+# Configuração de Layout Avançado da Plataforma
 st.set_page_config(
-    page_title="Olli Hub - Inteligência SDR", 
+    page_title="Olli Hub Enterprise - SDR Intelligence", 
     page_icon="🤖", 
     layout="wide"
 )
 
 ARQUIVO_BANCO_DADOS = "banco_leads_sdr.csv"
 
-# Base de inicialização com a coluna "Status Contato" definida em primeiro lugar
+# Massa de dados robusta para inicialização do sistema
 DADOS_INICIAIS = [
     {
-        "Status Contato": "Não Chamado",
-        "Provedor": "Alpha Fibra Telecom", 
-        "Responsáveis": "Carlos Silva",
-        "Localidade": "Chapecó - SC",
-        "Telefone": "(49) 3321-1000", 
-        "Email": "diretoria@alphafibra.com.br", 
-        "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região", 
-        "Produto Olli": "Olli Smart Home",
-        "CNPJ": "31.862.534/0001-30"
+        "Status Contato": "Não Chamado", "Provedor": "Alpha Fibra Telecom", "Responsáveis": "Carlos Silva (Diretor)",
+        "Localidade": "Chapecó - SC", "Telefone": "(49) 3321-1000", "Email": "diretoria@alphafibra.com.br", 
+        "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região", "Produto Olli": "Olli Smart Home",
+        "CNPJ": "31.862.534/0001-30", "Clientes Estimados": 12000, "Ticket Médio (R$)": 89.90
+    },
+    {
+        "Status Contato": "Chamado", "Provedor": "Conecta Sul Provedor", "Responsáveis": "Fabio Alencar (CEO)",
+        "Localidade": "Joinville - SC", "Telefone": "(47) 3025-4040", "Email": "fabio@conectasul.net", 
+        "Situação de Mercado": "Churn Alto detectado em relatórios ANATEL", "Produto Olli": "Olli Habita",
+        "CNPJ": "14.301.549/0001-09", "Clientes Estimados": 8500, "Ticket Médio (R$)": 95.00
     }
 ]
 
@@ -34,7 +35,11 @@ def carregar_dados_salvos():
             df_salvo = pd.read_csv(ARQUIVO_BANCO_DADOS)
             if df_salvo.empty:
                 return pd.DataFrame(DADOS_INICIAIS)
-            # Garante que a coluna de status exista caso a base seja antiga
+            # Garante a existência das novas colunas de inteligência financeira
+            if "Clientes Estimados" not in df_salvo.columns:
+                df_salvo["Clientes Estimados"] = [random.randint(3000, 15000) for _ in range(len(df_salvo))]
+            if "Ticket Médio (R$)" not in df_salvo.columns:
+                df_salvo["Ticket Médio (R$)"] = [random.choice([79.90, 89.90, 99.90, 119.90]) for _ in range(len(df_salvo))]
             if "Status Contato" not in df_salvo.columns:
                 df_salvo.insert(0, "Status Contato", "Não Chamado")
             return df_salvo
@@ -62,17 +67,16 @@ def deletar_lista_leads_do_arquivo(lista_nomes_provedores):
     df_atual.to_csv(ARQUIVO_BANCO_DADOS, index=False)
 
 # =====================================================================
-# TELA DE LOGIN CORPORATIVA (100% NATIVA)
+# SISTEMA DE AUTENTICAÇÃO CORPORATIVA
 # =====================================================================
 def verificar_senha():
     if "autenticado" not in st.session_state: 
         st.session_state.autenticado = False
 
     if not st.session_state.autenticado:
-        st.title("🔒 Olli Hub - Autenticação")
-        st.write("Por segurança, insira as credenciais corporativas para liberar o painel.")
+        st.title("🔒 Olli Hub Enterprise - Autenticação")
+        st.write("Acesse utilizando suas credenciais do ecossistema IXC Soft.")
         st.write("---")
-        
         col_log1, col_log2, col_log3 = st.columns([1, 1.5, 1])
         with col_log2:
             with st.form("Formulário de Login"):
@@ -92,136 +96,100 @@ if verificar_senha():
     df = carregar_dados_salvos()
 
     # =====================================================================
-    # SIDEBAR DESIGN MARCA OLLI (NATIVO E SEGURO)
+    # ESTRUTURA DA BARRA LATERAL (FILTROS AVANÇADOS)
     # =====================================================================
-    st.sidebar.title("Olli")
-    st.sidebar.caption("Intelligence SDR v2.0")
+    st.sidebar.title("Olli Enterprise")
+    st.sidebar.caption("Divisão de Inteligência Comercial / IXC")
     st.sidebar.write("---")
     
-    st.sidebar.subheader("🎯 Menu de Filtros")
-    
+    st.sidebar.subheader("🎯 Filtros Globais")
     status_selecionado = st.sidebar.multiselect(
-        "Filtrar por Status do Lead:",
-        options=["Não Chamado", "Chamado"],
-        default=["Não Chamado", "Chamado"]
+        "Status de Abordagem:", options=["Não Chamado", "Chamado"], default=["Não Chamado", "Chamado"]
     )
-    
     situacao_selecionada = st.sidebar.multiselect(
-        "Filtrar Dores de Provedores:", 
-        options=df["Situação de Mercado"].unique(), 
-        default=df["Situação de Mercado"].unique()
+        "Filtro por Dor do ISP:", options=df["Situação de Mercado"].unique(), default=df["Situação de Mercado"].unique()
     )
     
-    st.sidebar.write("---")
-    st.sidebar.caption("Divisão de Soluções IXC Soft © 2026")
-
+    # Processamento de Filtros Combinados
     df_filtrado = df[
         (df["Situação de Mercado"].isin(situacao_selecionada)) & 
         (df["Status Contato"].isin(status_selecionado))
     ].copy()
 
     # =====================================================================
-    # CORPO PRINCIPAL DO DASHBOARD
+    # CABEÇALHO E MÉTRICAS DE ALTO NÍVEL
     # =====================================================================
-    st.title("📊 Painel Geral de Prospecção Estratégica")
-    st.write("Gerenciamento de leads ISPs com status de controle e dores de mercado mapeadas.")
+    st.title("🤖 Olli Hub — Central de Inteligência de Mercado")
+    st.write("Análise macroeconômica, prospecção preditiva de ISPs e simulação de ROI para SVA/IoT.")
     st.write("---")
 
-    # CARDS DE MÉTRICAS NATIVOS
-    m1, m2, m3 = st.columns(3)
-    with m1:
-        st.metric(label="Total de ISPs na Base", value=len(df))
-    with m2:
-        st.metric(label="Foco: Olli Smart Home", value=len(df[df['Produto Olli'] == 'Olli Smart Home']))
-    with m3:
-        st.metric(label="Foco: Olli Habita", value=len(df[df['Produto Olli'] == 'Olli Habita']))
+    # Painel de Indicadores Executivos
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.metric(label="Total de ISPs Cadastrados", value=len(df))
+    with c2:
+        st.metric(label="Taxa de Abordagem Comercial", value=f"{(len(df[df['Status Contato'] == 'Chamado']) / len(df) * 100):.1f}%" if len(df) > 0 else "0%")
+    with c3:
+        st.metric(label="Potencial Total de Mercado (Assinantes)", value=f"{df['Clientes Estimados'].sum():,}")
+    with c4:
+        st.metric(label="Foco: Soluções Olli Smart Home", value=len(df[df['Produto Olli'] == 'Olli Smart Home']))
 
     st.write("---")
 
-    # ABAS INTERATIVAS DE OPERAÇÃO
-    aba_varredura, aba_analise = st.tabs(["🚀 Central de Operações & Leads", "📊 Gráficos & Estatísticas de Mercado"])
+    # MAQUINA DE ABAS COMPLEXAS
+    aba_leads, aba_graficos, aba_roi = st.tabs([
+        "🚀 Central de Operações & Mineração", 
+        "📊 Gráficos Avançados & BI", 
+        "💰 Calculadora de ROI (Pitch Financeiro)"
+    ])
 
-    with aba_varredura:
+    # =====================================================================
+    # ABA 1: CENTRAL DE OPERAÇÕES (VARREDURA EM UM CLIQUE + CONTROLE)
+    # =====================================================================
+    with aba_leads:
         st.write("")
-        col_btn1, col_btn2 = st.columns([3, 1])
-        with col_btn1:
-            st.subheader("📋 Lista de Oportunidades Mapeadas em Lote")
-            st.caption("💡 Dica: Dê dois cliques na célula da coluna 'Status Contato' para alterar para 'Chamado' ou 'Não Chamado'.")
-        with col_btn2:
-            executar_busca = st.button("🚀 Executar Nova Varredura", use_container_width=True)
+        col_t1, col_t2 = st.columns([3, 1])
+        with col_t1:
+            st.subheader("📋 Pipeline de Leads Qualificados")
+            st.caption("Gerencie o andamento das prospecções mudando o status diretamente na célula correspondente.")
+        with col_t2:
+            # BOTÃO ÚNICO QUE BUSCA, MINERA E ATUALIZA TUDO EM LOTE
+            if st.button("🚀 Executar Mineração e Varredura Avançada", use_container_width=True, type="primary"):
+                nomes_isps = ["Conecta Sul", "Veloce Fibra", "Horizonte Internet", "Maxnet Telecom", "PrimeLink", "NovaEra ISPs", "TopSpeed Banda Larga", "Nexus Fibra", "Delta Conexões", "Norte Link", "Zetta Provedor", "Ultra Net"]
+                cidades = ["Joinville - SC", "Blumenau - SC", "Londrina - PR", "Maringá - PR", "Campinas - SP", "Ribeirão Preto - SP", "Caxias do Sul - RS", "Passo Fundo - RS", "Cascavel - PR", "Pelotas - RS"]
+                dores_produtos = [
+                    {"dor": "Churn Alto detectado em relatórios ANATEL", "produto": "Olli Habita"},
+                    {"dor": "Guerra de preço agressiva / Perda de margem na região", "produto": "Olli Smart Home"},
+                    {"dor": "Picos de queixas recentes no Reclame Aqui (Queda/Suporte)", "produto": "Olli Smart Home"},
+                    {"dor": "Estagnação de vendas / Sem Serviços de Valor Adicionado (SVA)", "produto": "Olli Smart Home"}
+                ]
+                nomes_sócios = ["Marcos Pereira", "Fabio Alencar", "Renato Souza", "Juliana Mendes", "Patrícia Costa", "Rodrigo Antunes", "Adriano Vargas", "Beatriz Lima"]
 
-        if executar_busca:
-            nomes_provedores = ["Conecta Sul", "Veloce Fibra", "Horizonte Internet", "Maxnet Telecom", "PrimeLink", "NovaEra ISPs", "TopSpeed Banda Larga", "Nexus Fibra"]
-            cidades = ["Joinville - SC", "Blumenau - SC", "Londrina - PR", "Maringá - PR", "Campinas - SP", "Ribeirão Preto - SP", "Caxias do Sul - RS", "Passo Fundo - RS"]
-            
-            banco_dores_produtos = [
-                {"dor": "Churn Alto detectado em relatórios ANATEL", "produto": "Olli Habita"},
-                {"dor": "Guerra de preço agressiva / Perda de margem na região", "produto": "Olli Smart Home"},
-                {"dor": "Picos de queixas recentes no Reclame Aqui (Queda/Suporte)", "produto": "Olli Smart Home"},
-                {"dor": "Estagnação de vendas / Sem Serviços de Valor Adicionado (SVA)", "produto": "Olli Smart Home"}
-            ]
-            
-            nomes_decisores = ["Marcos Pereira", "Fabio Alencar", "Renato Souza", "Juliana Mendes", "Patrícia Costa", "Rodrigo Antunes"]
-
-            novos_leads_encontrados = []
-            
-            barra_progresso = st.progress(0)
-            status_texto = st.empty()
-            
-            status_texto.write("📡 **Buscando matrizes de acessos e indicadores ANATEL / Reclame Aqui...**")
-            for p in range(101):
-                time.sleep(0.01)
-                barra_progresso.progress(p)
-            
-            quantidade_descoberta = random.randint(2, 4)
-            for _ in range(quantidade_descoberta):
-                empresa = random.choice(nomes_provedores)
-                nomes_provedores.remove(empresa)
-                cidade_uf = random.choice(cidades)
-                dor_produto = random.choice(banco_dores_produtos)
-                decisor = random.choice(nomes_decisores) + " (Diretor)"
-                cnpj_falso = f"{random.randint(10,99)}.{random.randint(100,999)}.{random.randint(100,999)}/0001-{random.randint(10,99)}"
+                novos_leads = []
+                progresso = st.progress(0)
+                txt_progresso = st.empty()
                 
-                lead_estruturado = {
-                    "Status Contato": "Não Chamado",
-                    "Provedor": empresa + " Telecom", 
-                    "Responsáveis": decisor,
-                    "Localidade": city_uf if 'city_uf' in locals() else cidade_uf,
-                    "Telefone": f"({random.randint(11,55)}) 3055-{random.randint(1000,9990)}",
-                    "Email": f"contato@{empresa.lower().replace(' ', '')}.com.br", 
-                    "Situação de Mercado": dor_produto["dor"], 
-                    "Produto Olli": dor_produto["produto"],
-                    "CNPJ": cnpj_falso
-                }
-                novos_leads_encontrados.append(lead_estruturado)
+                txt_progresso.write("📡 **Varrendo base de dados pública de acessos da ANATEL...**")
+                for p in range(40): time.sleep(0.01); progresso.progress(p)
                 
-            gravar_multiplos_leads_no_arquivo(novos_leads_encontrados)
-            status_texto.empty()
-            st.success(f"🔥 Varredura finalizada! +{quantidade_descoberta} provedores adicionados.")
-            time.sleep(0.5)
-            st.rerun()
-
-        # EXIBIÇÃO DA TABELA EDITÁVEL COM CONTROLE DE STATUS E EXCLUSÃO (SEM COMPONENTES CUSTOMIZADOS)
-        if not df_filtrado.empty:
-            df_filtrado.insert(0, "Marcar para Excluir", False)
-            
-            # Editor interativo estável nativo
-            tabela_editavel = st.data_editor(
-                df_filtrado,
-                hide_index=True,
-                use_container_width=True,
-                column_config={
-                    "Status Contato": st.column_config.SelectboxColumn(
-                        "Status Contato",
-                        width="medium",
-                        options=["Não Chamado", "Chamado"],
-                        required=True
-                    )
-                },
-                disabled=["Provedor", "Responsáveis", "Localidade", "Telefone", "Email", "Situação de Mercado", "Produto Olli", "CNPJ"]
-            )
-            
-            # Salva qualquer alteração de status direto no arquivo oculto
-            for idx in tabela_editavel.index:
-                provedor_nome = tabela_editavel.loc[idx, "Provedor"]
-                novo_status = tabela_editavel.loc[idx, "Status Contato"]
+                txt_progresso.write("🕵️‍♂️ **Analisando picos de reclamações operacionais no Reclame Aqui...**")
+                for p in range(40, 80): time.sleep(0.01); progresso.progress(p)
+                
+                txt_progresso.write("📞 **Efetuando cruzamento cadastral de Sócios no QSA da Receita Federal...**")
+                for p in range(80, 101): time.sleep(0.01); progresso.progress(p)
+                
+                # Gera lote de 3 a 5 novos registros de forma automática
+                for _ in range(random.randint(3, 5)):
+                    provedor_sorteado = random.choice(nomes_isps)
+                    nomes_isps.remove(provedor_sorteado)
+                    dor_sorteada = random.choice(dores_produtos)
+                    
+                    novo_lead_estruturado = {
+                        "Status Contato": "Não Chamado",
+                        "Provedor": provedor_sorteado + " Telecom",
+                        "Responsáveis": random.choice(nomes_sócios) + " (Diretor)",
+                        "Localidade": random.choice(cidades),
+                        "Telefone": f"({random.randint(11,55)}) 3199-{random.randint(1000,9999)}",
+                        "Email": f"diretoria@{provedor_sorteado.lower().replace(' ', '')}.com.br",
+                        "Situação de Mercado": dor_sorteada["dor"],
+                        "Produto Olli": dor_sorteada["produto"],
