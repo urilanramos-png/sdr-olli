@@ -35,6 +35,7 @@ def carregar_dados_salvos():
             df_salvo = pd.read_csv(ARQUIVO_BANCO_DADOS)
             if df_salvo.empty:
                 return pd.DataFrame(DADOS_INICIAIS)
+            # Garante a existência das novas colunas de inteligência financeira
             if "Clientes Estimados" not in df_salvo.columns:
                 df_salvo["Clientes Estimados"] = [random.randint(3000, 15000) for _ in range(len(df_salvo))]
             if "Ticket Médio (R$)" not in df_salvo.columns:
@@ -178,7 +179,6 @@ if verificar_senha():
                     nomes_isps.remove(provedor_sorteado)
                     dor_sorteada = random.choice(dores_produtos)
                     
-                    # CORREÇÃO CRÍTICA DA LINHA 137: Removido o espaço do e-mail
                     novo_lead_estruturado = {
                         "Status Contato": "Não Chamado",
                         "Provedor": provedor_sorteado + " Telecom",
@@ -191,3 +191,4 @@ if verificar_senha():
                         "CNPJ": f"{random.randint(10,99)}.{random.randint(100,999)}.{random.randint(100,999)}/0001-{random.randint(10,99)}",
                         "Clientes Estimados": random.randint(2500, 18000),
                         "Ticket Médio (R$)": random.choice([69.90, 89.90, 99.90, 149.90])
+                    }
