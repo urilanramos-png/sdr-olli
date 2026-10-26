@@ -66,13 +66,10 @@ if verificar_senha():
     df = carregar_dados_salvos()
 
     # =====================================================================
-    # MARCA OLLI NO CANTO SUPERIOR ESQUERDO (BARRA LATERAL)
+    # MARCA OLLI NO CANTO SUPERIOR ESQUERDO (BARRA LATERAL CORRIGIDA)
     # =====================================================================
-    st.sidebar.markdown(
-        "<h1 style='color: #FF5A00; font-family: sans-serif; margin-bottom: 0px;'>Olli</h1>"
-        "<p style='font-size: 12px; color: #888; margin-top: 0px;'>Ecossistema IXC Soft</p>", 
-        unsafe_html=True
-    )
+    st.sidebar.title("Olli")
+    st.sidebar.caption("Ecossistema IXC Soft")
     st.sidebar.write("---")
 
     st.title("🤖 Central de Inteligência Comercial — SDR Olli IoT")
@@ -183,18 +180,17 @@ if verificar_senha():
 
     st.write("---")
     
-    # Seção de Script de Abordagem Comercial Customizado (LÓGICA SIMPLIFICADA À PROVA DE ERROS)
+    # Seção de Script de Abordagem Comercial Customizado
     st.subheader("⚡ Script de Abordagem para o Lead Selecionado")
     if not df_filtrado.empty:
         provedor_escolhido = st.selectbox("Escolha um provedor para ver o Script do SDR:", df_filtrado["Provedor"].unique())
         if provedor_escolhido:
-            # Captura a linha isolada
+            # Captura a linha isolada de forma segura
             sub_df = df_filtrado[df_filtrado["Provedor"] == provedor_escolhido]
             
-            # Pega os valores puros como strings de forma direta e limpa
+            # Remove colchetes extras limpando a exibição do texto
             v_resp = str(sub_df["Responsáveis"].values[0])
             v_local = str(sub_df["Localidade"].values[0])
             v_prov = str(sub_df["Provedor"].values[0])
             v_sit = str(sub_df["Situação de Mercado"].values[0]).lower()
             
-            # Montagem simples do texto por partes para evitar conflito de parênteses
