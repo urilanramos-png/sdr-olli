@@ -35,6 +35,7 @@ def carregar_dados_salvos():
             df_salvo = pd.read_csv(ARQUIVO_BANCO_DADOS)
             if df_salvo.empty:
                 return pd.DataFrame(DADOS_INICIAIS)
+            # Garante a existência das colunas de inteligência financeira
             if "Clientes Estimados" not in df_salvo.columns:
                 df_salvo["Clientes Estimados"] = [random.randint(3000, 15000) for _ in range(len(df_salvo))]
             if "Ticket Médio (R$)" not in df_salvo.columns:
@@ -173,7 +174,6 @@ if verificar_senha():
                 txt_progresso.write("📞 **Efetuando cruzamento cadastral de Sócios no QSA...**")
                 for p in range(80, 101): time.sleep(0.01); progresso.progress(p)
                 
-                # CORREÇÃO DEFINITIVA DO DICIONÁRIO EM LOTE: Chaves perfeitamente alinhadas e fechadas
                 for _ in range(random.randint(3, 5)):
                     provedor_sorteado = random.choice(nomes_isps)
                     nomes_isps.remove(provedor_sorteado)
