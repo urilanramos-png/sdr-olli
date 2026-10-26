@@ -107,15 +107,15 @@ if verificar_senha():
         status_texto = st.empty()
         
         status_texto.markdown("📡 **Etapa 1:** Conectando com banco de dados de acessos da ANATEL e cruzando localizações...")
-        time.sleep(1.2)
+        time.sleep(1.0)
         barra_progresso.progress(35)
         
         status_texto.markdown("🕵️‍♂️ **Etapa 2:** Varrendo histórico de reclamações e índices de atendimento no Reclame Aqui...")
-        time.sleep(1.2)
+        time.sleep(1.0)
         barra_progresso.progress(70)
         
         status_texto.markdown("📞 **Etapa 3:** Minerando telefones comerciais de contato e identificando Sócios/Diretores no QSA...")
-        time.sleep(1.2)
+        time.sleep(1.0)
         barra_progresso.progress(100)
         
         quantidade_descoberta = random.randint(3, 5)
@@ -186,14 +186,15 @@ if verificar_senha():
 
     st.write("---")
     
-    # Seção de Script de Abordagem Comercial Customizado (Ajustada com conversão direta de dicionário)
+    # Seção de Script de Abordagem Comercial Customizado (Lógica limpa baseada em dicionário de índice zero)
     st.subheader("⚡ Script de Abordagem para o Lead Selecionado")
     if not df_filtrado.empty:
         provedor_escolhido = st.selectbox("Escolha um provedor para ver o Script do SDR:", df_filtrado["Provedor"].unique())
         if provedor_escolhido:
-            # Filtra a linha exata e converte para dicionário limpo para evitar erros de índice do pandas
-            dados_linha = df_filtrado[df_filtrado["Provedor"] == provedor_escolhido].to_dict(orient="records")[0]
+            # Filtra a linha exata e converte para uma lista de registros limpa
+            registros = df_filtrado[df_filtrado["Provedor"] == provedor_escolhido].to_dict(orient="records")
+            lead_atual = registros[0]
             
             st.info(
                 f"**Roteiro Comercial Customizado (Pronto para copiar):**\n\n"
-                f"_\"Olá, busco pelo **{dados_linha['Responsáveis']}**. Tudo bem? "
+                f"_\"Olá, busco pelo **{lead_atual['Responsáveis']}**. Tudo bem? "
