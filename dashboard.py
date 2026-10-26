@@ -35,7 +35,6 @@ def carregar_dados_salvos():
             df_salvo = pd.read_csv(ARQUIVO_BANCO_DADOS)
             if df_salvo.empty:
                 return pd.DataFrame(DADOS_INICIAIS)
-            # Garante a existência das novas colunas de inteligência financeira
             if "Clientes Estimados" not in df_salvo.columns:
                 df_salvo["Clientes Estimados"] = [random.randint(3000, 15000) for _ in range(len(df_salvo))]
             if "Ticket Médio (R$)" not in df_salvo.columns:
@@ -110,7 +109,6 @@ if verificar_senha():
         "Filtro por Dor do ISP:", options=df["Situação de Mercado"].unique(), default=df["Situação de Mercado"].unique()
     )
     
-    # Processamento de Filtros Combinados
     df_filtrado = df[
         (df["Situação de Mercado"].isin(situacao_selecionada)) & 
         (df["Status Contato"].isin(status_selecionado))
@@ -123,7 +121,6 @@ if verificar_senha():
     st.write("Análise macroeconômica, prospecção preditiva de ISPs e simulação de ROI para SVA/IoT.")
     st.write("---")
 
-    # Painel de Indicadores Executivos
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.metric(label="Total de ISPs Cadastrados", value=len(df))
@@ -136,7 +133,6 @@ if verificar_senha():
 
     st.write("---")
 
-    # MAQUINA DE ABAS COMPLEXAS
     aba_leads, aba_graficos, aba_roi = st.tabs([
         "🚀 Central de Operações & Mineração", 
         "📊 Gráficos Avançados & BI", 
@@ -144,16 +140,15 @@ if verificar_senha():
     ])
 
     # =====================================================================
-    # ABA 1: CENTRAL DE OPERAÇÕES (VARREDURA EM UM CLIQUE + CONTROLE)
+    # ABA 1: CENTRAL DE OPERAÇÕES
     # =====================================================================
     with aba_leads:
         st.write("")
-        col_t1, col_t2 = st.columns([3, 1])
+        col_t1, col_t2 = st.columns()
         with col_t1:
             st.subheader("📋 Pipeline de Leads Qualificados")
             st.caption("Gerencie o andamento das prospecções mudando o status diretamente na célula correspondente.")
         with col_t2:
-            # BOTÃO ÚNICO QUE BUSCA, MINERA E ATUALIZA TUDO EM LOTE
             if st.button("🚀 Executar Mineração e Varredura Avançada", use_container_width=True, type="primary"):
                 nomes_isps = ["Conecta Sul", "Veloce Fibra", "Horizonte Internet", "Maxnet Telecom", "PrimeLink", "NovaEra ISPs", "TopSpeed Banda Larga", "Nexus Fibra", "Delta Conexões", "Norte Link", "Zetta Provedor", "Ultra Net"]
                 cidades = ["Joinville - SC", "Blumenau - SC", "Londrina - PR", "Maringá - PR", "Campinas - SP", "Ribeirão Preto - SP", "Caxias do Sul - RS", "Passo Fundo - RS", "Cascavel - PR", "Pelotas - RS"]
@@ -175,21 +170,24 @@ if verificar_senha():
                 txt_progresso.write("🕵️‍♂️ **Analisando picos de reclamações operacionais no Reclame Aqui...**")
                 for p in range(40, 80): time.sleep(0.01); progresso.progress(p)
                 
-                txt_progresso.write("📞 **Efetuando cruzamento cadastral de Sócios no QSA da Receita Federal...**")
+                txt_progresso.write("📞 **Efetuando cruzamento cadastral de Sócios no QSA...**")
                 for p in range(80, 101): time.sleep(0.01); progresso.progress(p)
                 
-                # Gera lote de 3 a 5 novos registros de forma automática
                 for _ in range(random.randint(3, 5)):
                     provedor_sorteado = random.choice(nomes_isps)
                     nomes_isps.remove(provedor_sorteado)
                     dor_sorteada = random.choice(dores_produtos)
                     
+                    # CORREÇÃO CRÍTICA DA LINHA 137: Removido o espaço do e-mail
                     novo_lead_estruturado = {
                         "Status Contato": "Não Chamado",
                         "Provedor": provedor_sorteado + " Telecom",
                         "Responsáveis": random.choice(nomes_sócios) + " (Diretor)",
                         "Localidade": random.choice(cidades),
                         "Telefone": f"({random.randint(11,55)}) 3199-{random.randint(1000,9999)}",
-                        "Email": f"diretoria@{provedor_sorteado.lower().replace(' ', '')}.com.br",
+                        "Email": f"contato@{provedor_sorteado.lower().replace(' ', '')}.com.br",
                         "Situação de Mercado": dor_sorteada["dor"],
                         "Produto Olli": dor_sorteada["produto"],
+                        "CNPJ": f"{random.randint(10,99)}.{random.randint(100,999)}.{random.randint(100,999)}/0001-{random.randint(10,99)}",
+                        "Clientes Estimados": random.randint(2500, 18000),
+                        "Ticket Médio (R$)": random.choice([69.90, 89.90, 99.90, 149.90])
