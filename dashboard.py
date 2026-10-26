@@ -213,7 +213,7 @@ if verificar_senha():
         with col_btn2:
             executar_busca = st.button("🚀 Executar Nova Varredura", use_container_width=True)
 
-        if ejecutar_busca:
+        if executar_busca:
             nomes_provedores = ["Conecta Sul", "Veloce Fibra", "Horizonte Internet", "Maxnet Telecom", "PrimeLink", "NovaEra ISPs", "TopSpeed Banda Larga", "Nexus Fibra"]
             cidades = ["Joinville - SC", "Blumenau - SC", "Londrina - PR", "Maringá - PR", "Campinas - SP", "Ribeirão Preto - SP", "Caxias do Sul - RS", "Passo Fundo - RS"]
             
