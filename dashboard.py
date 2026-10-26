@@ -39,9 +39,10 @@ def gravar_multiplos_leads_no_arquivo(novos_leads):
     df_consolidado.drop_duplicates(subset=["CNPJ", "Provedor"], keep="first", inplace=True)
     df_consolidado.to_csv(ARQUIVO_BANCO_DADOS, index=False)
 
-def deletar_lead_do_arquivo(nome_provedor):
+def deletar_lista_leads_do_arquivo(lista_nomes_provedores):
     df_atual = carregar_dados_salvos()
-    df_atual = df_atual[df_atual["Provedor"] != nome_provedor]
+    # Filtra o banco mantendo apenas quem NÃO está na lista para deletar
+    df_atual = df_atual[~df_atual["Provedor"].isin(lista_nomes_provedores)]
     df_atual.reset_index(drop=True, inplace=True)
     df_atual.to_csv(ARQUIVO_BANCO_DADOS, index=False)
 
@@ -66,7 +67,7 @@ if verificar_senha():
     df = carregar_dados_salvos()
 
     # =====================================================================
-    # MARCA OLLI NO CANTO SUPERIOR ESQUERDO (BARRA LATERAL CORRIGIDA)
+    # MARCA OLLI NO CANTO SUPERIOR ESQUERDO (BARRA LATERAL)
     # =====================================================================
     st.sidebar.title("Olli")
     st.sidebar.caption("Ecossistema IXC Soft")
@@ -101,15 +102,15 @@ if verificar_senha():
         barra_progresso = st.progress(0)
         status_texto = st.empty()
         
-        status_texto.markdown("📡 **Etapa 1:** Conectando com banco de dados de acessos da ANATEL e cruzando localizações...")
+        status_texto.markdown("📡 **Etapa 1:** Conectando com banco de dados de acessos da ANATEL...")
         time.sleep(1.0)
         barra_progresso.progress(35)
         
-        status_texto.markdown("🕵️‍♂️ **Etapa 2:** Varrendo histórico de reclamações e índices de atendimento no Reclame Aqui...")
+        status_texto.markdown("🕵️‍♂️ **Etapa 2:** Varrendo histórico do Reclame Aqui...")
         time.sleep(1.0)
         barra_progresso.progress(70)
         
-        status_texto.markdown("📞 **Etapa 3:** Minerando telefones comerciais de contato e identificando Sócios/Diretores no QSA...")
+        status_texto.markdown("📞 **Etapa 3:** Minerando contatos e Sócios no QSA...")
         time.sleep(1.0)
         barra_progresso.progress(100)
         
@@ -155,24 +156,34 @@ if verificar_senha():
     # Filtros na Lateral
     st.sidebar.header("Filtros de Prospecção")
     situacao_selecionada = st.sidebar.multiselect("Filtrar por Situação:", options=df["Situação de Mercado"].unique(), default=df["Situação de Mercado"].unique())
-    df_filtrado = df[df["Situação de Mercado"].isin(situacao_selecionada)]
+    df_filtrado = df[df["Situação de Mercado"].isin(situacao_selecionada)].copy()
 
     # =====================================================================
-    # TABELA DE LEADS + OPÇÃO DE APAGAR LINHA
+    # TABELA DE LEADS COM SELEÇÃO DIRETA NA LINHA PARA EXCLUSÃO
     # =====================================================================
     st.subheader("📋 Lista de Oportunidades Mapeadas em Lote")
     
     if not df_filtrado.empty:
-        st.dataframe(df_filtrado, use_container_width=True)
+        # Cria uma coluna temporária com caixas de seleção na tabela
+        df_filtrado.insert(0, "Selecionar para Excluir", False)
         
-        with st.expander("🗑️ Área de Descarte (Excluir linha de lead da base)"):
-            lead_para_deletar = st.selectbox(
-                "Selecione o Provedor que deseja remover do banco de dados:", 
-                options=df_filtrado["Provedor"].unique()
-            )
-            if st.button("🚨 Apagar Linha Permanentemente", type="secondary"):
-                deletar_lead_do_arquivo(lead_para_deletar)
-                st.error(f"🗑️ {lead_para_deletar} removido com sucesso!")
+        # Transforma a tabela em um editor interativo de linhas
+        tabela_editavel = st.data_editor(
+            df_filtrado,
+            hide_index=True,
+            use_container_width=True,
+            disabled=["CNPJ", "Provedor", "Localidade", "Telefone", "Email", "Responsáveis", "Situação de Mercado", "Produto Olli"]
+        )
+        
+        # Captura quais linhas o usuário marcou o "True" (Checkbox)
+        leads_selecionados = tabela_editavel[tabela_editavel["Selecionar para Excluir"] == True]["Provedor"].tolist()
+        
+        # Se houver linhas marcadas, exibe o botão vermelho de descarte rápido
+        if leads_selecionados:
+            st.write("")
+            if st.button(f"🗑️ Excluir ({len(leads_selecionados)}) Cliente(s) Selecionado(s)", type="secondary", use_container_width=True):
+                deletar_lista_leads_do_arquivo(leads_selecionados)
+                st.error("Leads removidos com sucesso do banco de dados permanente!")
                 time.sleep(1)
                 st.rerun()
     else:
@@ -182,13 +193,11 @@ if verificar_senha():
     
     # Seção de Script de Abordagem Comercial Customizado
     st.subheader("⚡ Script de Abordagem para o Lead Selecionado")
-    if not df_filtrado.empty:
-        provedor_escolhido = st.selectbox("Escolha um provedor para ver o Script do SDR:", df_filtrado["Provedor"].unique())
+    if not df.empty:
+        provedor_escolhido = st.selectbox("Escolha um provedor para ver o Script do SDR:", df["Provedor"].unique())
         if provedor_escolhido:
-            # Captura a linha isolada de forma segura
-            sub_df = df_filtrado[df_filtrado["Provedor"] == provedor_escolhido]
+            sub_df = df[df["Provedor"] == provedor_escolhido]
             
-            # Remove colchetes extras limpando a exibição do texto
             v_resp = str(sub_df["Responsáveis"].values[0])
             v_local = str(sub_df["Localidade"].values[0])
             v_prov = str(sub_df["Provedor"].values[0])
