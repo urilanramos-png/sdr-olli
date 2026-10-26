@@ -16,16 +16,30 @@ ARQUIVO_BANCO_DADOS = "banco_leads_sdr.csv"
 # Massa de dados robusta para inicialização do sistema
 DADOS_INICIAIS = [
     {
-        "Status Contato": "Não Chamado", "Provedor": "Alpha Fibra Telecom", "Responsáveis": "Carlos Silva (Diretor)",
-        "Localidade": "Chapecó - SC", "Telefone": "(49) 3321-1000", "Email": "diretoria@alphafibra.com.br", 
-        "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região", "Produto Olli": "Olli Smart Home",
-        "CNPJ": "31.862.534/0001-30", "Clientes Estimados": 12000, "Ticket Médio (R$)": 89.90
+        "Status Contato": "Não Chamado", 
+        "Provedor": "Alpha Fibra Telecom", 
+        "Responsáveis": "Carlos Silva (Diretor)",
+        "Localidade": "Chapecó - SC", 
+        "Telefone": "(49) 3321-1000", 
+        "Email": "diretoria@alphafibra.com.br", 
+        "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região", 
+        "Produto Olli": "Olli Smart Home",
+        "CNPJ": "31.862.534/0001-30", 
+        "Clientes Estimados": 12000, 
+        "Ticket Médio (R$)": 89.90
     },
     {
-        "Status Contato": "Chamado", "Provedor": "Conecta Sul Provedor", "Responsáveis": "Fabio Alencar (CEO)",
-        "Localidade": "Joinville - SC", "Telefone": "(47) 3025-4040", "Email": "fabio@conectasul.net", 
-        "Situação de Mercado": "Churn Alto detectado em relatórios ANATEL", "Produto Olli": "Olli Habita",
-        "CNPJ": "14.301.549/0001-09", "Clientes Estimados": 8500, "Ticket Médio (R$)": 95.00
+        "Status Contato": "Chamado", 
+        "Provedor": "Conecta Sul Provedor", 
+        "Responsáveis": "Fabio Alencar (CEO)",
+        "Localidade": "Joinville - SC", 
+        "Telefone": "(47) 3025-4040", 
+        "Email": "fabio@conectasul.net", 
+        "Situação de Mercado": "Churn Alto detectado em relatórios ANATEL", 
+        "Produto Olli": "Olli Habita",
+        "CNPJ": "14.301.549/0001-09", 
+        "Clientes Estimados": 8500, 
+        "Ticket Médio (R$)": 95.00
     }
 ]
 
@@ -35,11 +49,10 @@ def carregar_dados_salvos():
             df_salvo = pd.read_csv(ARQUIVO_BANCO_DADOS)
             if df_salvo.empty:
                 return pd.DataFrame(DADOS_INICIAIS)
-            # Garante a existência das colunas de inteligência financeira
             if "Clientes Estimados" not in df_salvo.columns:
-                df_salvo["Clientes Estimados"] = [random.randint(3000, 15000) for _ in range(len(df_salvo))]
+                df_salvo["Clientes Estimados"] = 5000
             if "Ticket Médio (R$)" not in df_salvo.columns:
-                df_salvo["Ticket Médio (R$)"] = [random.choice([79.90, 89.90, 99.90, 119.90]) for _ in range(len(df_salvo))]
+                df_salvo["Ticket Médio (R$)"] = 89.90
             if "Status Contato" not in df_salvo.columns:
                 df_salvo.insert(0, "Status Contato", "Não Chamado")
             return df_salvo
@@ -128,7 +141,7 @@ if verificar_senha():
     with c2:
         st.metric(label="Taxa de Abordagem Comercial", value=f"{(len(df[df['Status Contato'] == 'Chamado']) / len(df) * 100):.1f}%" if len(df) > 0 else "0%")
     with c3:
-        st.metric(label="Potencial Total de Mercado (Assinantes)", value=f"{df['Clientes Estimados'].sum():,}")
+        st.metric(label="Potencial Total de Mercado (Assinantes)", value=f"{int(df['Clientes Estimados'].sum()):,}")
     with c4:
         st.metric(label="Foco: Soluções Olli Smart Home", value=len(df[df['Produto Olli'] == 'Olli Smart Home']))
 
@@ -159,7 +172,7 @@ if verificar_senha():
                     {"dor": "Picos de queixas recentes no Reclame Aqui (Queda/Suporte)", "produto": "Olli Smart Home"},
                     {"dor": "Estagnação de vendas / Sem Serviços de Valor Adicionado (SVA)", "produto": "Olli Smart Home"}
                 ]
-                nomes_sócios = ["Marcos Pereira", "Fabio Alencar", "Renato Souza", "Juliana Mendes", "Patrícia Costa", "Rodrigo Antunes", "Adriano Vargas", "Beatriz Lima"]
+                nomes_socios = ["Marcos Pereira", "Fabio Alencar", "Renato Souza", "Juliana Mendes", "Patrícia Costa", "Rodrigo Antunes", "Adriano Vargas", "Beatriz Lima"]
 
                 novos_leads = []
                 progresso = st.progress(0)
@@ -174,20 +187,23 @@ if verificar_senha():
                 txt_progresso.write("📞 **Efetuando cruzamento cadastral de Sócios no QSA...**")
                 for p in range(80, 101): time.sleep(0.01); progresso.progress(p)
                 
+                # REVISÃO FIXA 5X: Criação simplificada de variáveis locais antes da montagem estrutural do dicionário
                 for _ in range(random.randint(3, 5)):
-                    provedor_sorteado = random.choice(nomes_isps)
-                    nomes_isps.remove(provedor_sorteado)
+                    prov_sorteado = str(random.choice(nomes_isps))
+                    nomes_isps.remove(prov_sorteado)
                     dor_sorteada = random.choice(dores_produtos)
-                    email_limpo = "diretoria@" + provedor_sorteado.lower().replace(" ", "") + ".com.br"
+                    
+                    p_status = "Não Chamado"
+                    p_nome = prov_sorteado + " Telecom"
+                    p_resp = str(random.choice(nomes_socios)) + " (Diretor)"
+                    p_local = str(random.choice(cidades))
+                    p_tel = f"({random.randint(11,55)}) 3199-{random.randint(1000,9999)}"
+                    p_email = "contato@" + prov_sorteado.lower().replace(" ", "") + ".com.br"
+                    p_dor = str(dor_sorteada["dor"])
+                    p_prod = str(dor_sorteada["produto"])
+                    p_cnpj = f"{random.randint(10,99)}.{random.randint(100,999)}.{random.randint(100,999)}/0001-{random.randint(10,99)}"
+                    p_cli = int(random.randint(2500, 18000))
+                    p_tkt = float(random.choice([69.90, 89.90, 99.90, 149.90]))
                     
                     novo_lead_estruturado = {
-                        "Status Contato": "Não Chamado",
-                        "Provedor": str(provedor_sorteado) + " Telecom",
-                        "Responsáveis": str(random.choice(nomes_sócios)) + " (Diretor)",
-                        "Localidade": str(random.choice(cidades)),
-                        "Telefone": f"({random.randint(11,55)}) 3199-{random.randint(1000,9999)}",
-                        "Email": email_limpo,
-                        "Situação de Mercado": str(dor_sorteada["dor"]),
-                        "Produto Olli": str(dor_sorteada["produto"]),
-                        "CNPJ": f"{random.randint(10,99)}.{random.randint(100,999)}.{random.randint(100,999)}/0001-{random.randint(10,99)}",
-                        "Clientes Estimados": int(random.randint(2500, 18000)),
+                        "Status Contato": p_status,
