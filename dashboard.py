@@ -183,19 +183,18 @@ if verificar_senha():
 
     st.write("---")
     
-    # Seção de Script de Abordagem Comercial Customizado (Lógica direta e limpa usando localização direta de strings)
+    # Seção de Script de Abordagem Comercial Customizado (LÓGICA SIMPLIFICADA À PROVA DE ERROS)
     st.subheader("⚡ Script de Abordagem para o Lead Selecionado")
     if not df_filtrado.empty:
         provedor_escolhido = st.selectbox("Escolha um provedor para ver o Script do SDR:", df_filtrado["Provedor"].unique())
         if provedor_escolhido:
-            # Captura os dados puros da linha para evitar conflitos de sintaxe
-            linha_selecionada = df_filtrado[df_filtrado["Provedor"] == provedor_escolhido]
+            # Captura a linha isolada
+            sub_df = df_filtrado[df_filtrado["Provedor"] == provedor_escolhido]
             
-            resp_texto = str(linha_selecionada["Responsáveis"].values[0])
-            local_texto = str(linha_selecionada["Localidade"].values[0])
-            prov_texto = str(linha_selecionada["Provedor"].values[0])
-            sit_texto = str(linha_selecionada["Situação de Mercado"].values[0]).lower()
+            # Pega os valores puros como strings de forma direta e limpa
+            v_resp = str(sub_df["Responsáveis"].values[0])
+            v_local = str(sub_df["Localidade"].values[0])
+            v_prov = str(sub_df["Provedor"].values[0])
+            v_sit = str(sub_df["Situação de Mercado"].values[0]).lower()
             
-            st.info(
-                f"**Roteiro Comercial Customizado (Pronto para copiar):**\n\n"
-                f"_\"Olá, busco pelo **{resp_texto}**. Tudo bem? "
+            # Montagem simples do texto por partes para evitar conflito de parênteses
