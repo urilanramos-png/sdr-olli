@@ -7,7 +7,6 @@ import time
 # =====================================================================
 # CONFIGURAÇÃO DE IDENTIDADE VISUAL (CORES OFICIAIS DA OLLI)
 # =====================================================================
-# Definindo as cores baseadas no site oficial: Roxo Olli, Fundo Escuro e Detalhes
 st.set_page_config(
     page_title="Dashboard SDR - Olli IoT", 
     page_icon="🤖", 
@@ -166,9 +165,9 @@ if verificar_senha():
             lead_estruturado = {
                 "CNPJ": cnpj_falso,
                 "Provedor": empresa + " Telecom",
-                "Localidade": cidade_uf,
+                "Localidade": city_uf if 'city_uf' in locals() else cidade_uf,
                 "Telefone": f"({random.randint(11,55)}) 3055-{random.randint(1000,9990)}",
-                "Email": f"contato@{empresa.lower().replace(' ', '')}.com.br",
+                "Email": f"contato@ {empresa.lower().replace(' ', '')}.com.br",
                 "Responsáveis": decisor,
                 "Situação de Mercado": dor_produto["dor"],
                 "Produto Olli": dor_produto["produto"]
@@ -215,4 +214,5 @@ if verificar_senha():
         
         if leads_selecionados:
             st.write("")
-            if st.button(f"🗑️ Excluir ({len(leads_selecionados)}) Cliente(s) Selecionado(s)", type="secondary", use_container_width=True):
+            if st.button("🗑️ Excluir Clientes Selecionados", type="secondary", use_container_width=True):
+                deletar_lista_leads_do_arquivo(leads_selecionados)
