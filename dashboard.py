@@ -50,12 +50,15 @@ def deletar_lista_leads_do_arquivo(lista_nomes_provedores):
     df_atual.to_csv(ARQUIVO_BANCO_DADOS, index=False)
 
 # =====================================================================
-# TELA DE LOGIN FORMATADA
+# TELA DE LOGIN FORMATADA (REESCRITA SEM MARCOUP HTML COMPLEXO)
 # =====================================================================
 def verificar_senha():
-    if "autenticado" not in st.session_state: st.session_state.autenticado = False
+    if "autenticado" not in st.session_state: 
+        st.session_state.autenticado = False
+
     if not st.session_state.autenticado:
-        st.markdown("<h2 style='text-align: center; color: #7A28FF;'>🔒 Olli Hub - Autenticação</h2>", unsafe_html=True)
+        st.header("🔒 Olli Hub - Autenticação")
+        st.write("Por segurança, insira as credenciais corporativas.")
         st.write("---")
         
         col_log1, col_log2, col_log3 = st.columns([1, 2, 1])
@@ -79,13 +82,8 @@ if verificar_senha():
     # =====================================================================
     # SIDEBAR DESIGN
     # =====================================================================
-    st.sidebar.markdown(
-        "<div style='text-align: center; padding: 10px;'>"
-        "<h1 style='color: #7A28FF; font-family: sans-serif; margin-bottom: 0px;'>Olli</h1>"
-        "<p style='font-size: 13px; color: #888; margin-top: 0px;'>Intelligence SDR v2.0</p>"
-        "</div>", 
-        unsafe_html=True
-    )
+    st.sidebar.title("Olli")
+    st.sidebar.caption("Intelligence SDR v2.0")
     st.sidebar.write("---")
     
     st.sidebar.subheader("🎯 Menu de Filtros")
@@ -98,49 +96,32 @@ if verificar_senha():
     st.sidebar.write("---")
     st.sidebar.caption("Divisão de Soluções IXC Soft © 2026")
 
-    # Aplica o filtro lateral na tabela principal
     df_filtrado = df[df["Situação de Mercado"].isin(situacao_selecionada)].copy()
 
     # =====================================================================
-    # DASHBOARD BODY (FRONT-END PREMIUM)
+    # DASHBOARD BODY
     # =====================================================================
     st.markdown("## 📊 Painel Geral de Prospecção Estratégica")
-    st.markdown("Gerenciamento automatizado de leads ISPs com dores de mercado validadas pelo ecossistema.")
+    st.markdown("Gerenciamento automatizado de leads ISPs com dores de mercado validadas.")
     st.write("---")
 
-    # CARDS DE MÉTRICAS DESIGN SÓLIDO
+    # CARDS DE MÉTRICAS FORMATADOS DE MANEIRA NATIVA
     m1, m2, m3 = st.columns(3)
     with m1:
-        st.markdown(
-            f"<div style='background-color: #16161D; padding: 20px; border-radius: 15px; border-left: 5px solid #7A28FF;'>"
-            f"<p style='margin: 0; color: #888; font-size: 14px;'>Total de ISPs na Base</p>"
-            f"<h2 style='margin: 0; color: #FFFFFF;'>{len(df)}</h2>"
-            f"</div>", unsafe_html=True
-        )
+        st.metric(label="Total de ISPs na Base", value=len(df))
     with m2:
-        st.markdown(
-            f"<div style='background-color: #16161D; padding: 20px; border-radius: 15px; border-left: 5px solid #00C853;'>"
-            f"<p style='margin: 0; color: #888; font-size: 14px;'>Foco: Olli Smart Home</p>"
-            f"<h2 style='margin: 0; color: #FFFFFF;'>{len(df[df['Produto Olli'] == 'Olli Smart Home'])}</h2>"
-            f"</div>", unsafe_html=True
-        )
+        st.metric(label="Foco: Olli Smart Home", value=len(df[df['Produto Olli'] == 'Olli Smart Home']))
     with m3:
-        st.markdown(
-            f"<div style='background-color: #16161D; padding: 20px; border-radius: 15px; border-left: 5px solid #FF9100;'>"
-            f"<p style='margin: 0; color: #888; font-size: 14px;'>Foco: Olli Habita</p>"
-            f"<h2 style='margin: 0; color: #FFFFFF;'>{len(df[df['Produto Olli'] == 'Olli Habita'])}</h2>"
-            f"</div>", unsafe_html=True
-        )
+        st.metric(label="Foco: Olli Habita", value=len(df[df['Produto Olli'] == 'Olli Habita']))
 
-    st.write("")
     st.write("---")
 
     # ABA INTERATIVA CENTRAL DE OPERAÇÕES
-    aba_varredura, aba_analise = st.tabs(["🚀 Central de Operations & Leads", "📊 Gráficos & Estatísticas de Mercado"])
+    aba_varredura, aba_analise = st.tabs(["🚀 Central de Operações & Leads", "📊 Gráficos & Estatísticas de Mercado"])
 
     with aba_varredura:
         st.write("")
-        col_btn1, col_btn2 = st.columns()
+        col_btn1, col_btn2 = st.columns([3, 1])
         with col_btn1:
             st.markdown("### 📋 Oportunidades Mapeadas em Lote")
         with col_btn2:
@@ -180,7 +161,7 @@ if verificar_senha():
                 cnpj_falso = f"{random.randint(10,99)}.{random.randint(100,999)}.{random.randint(100,999)}/0001-{random.randint(10,99)}"
                 
                 lead_estruturado = {
-                    "CNPJ": cnpj_falso, "Provedor": empresa + " Telecom", "Localidade": cidade_uf,
+                    "CNPJ": cnpj_falso, "Provedor": empresa + " Telecom", "Localidade": city_uf if 'city_uf' in locals() else cidade_uf,
                     "Telefone": f"({random.randint(11,55)}) 3055-{random.randint(1000,9990)}",
                     "Email": f"contato@{empresa.lower().replace(' ', '')}.com.br", "Responsáveis": decisor,
                     "Situação de Mercado": dor_produto["dor"], "Produto Olli": dor_produto["produto"]
@@ -189,7 +170,7 @@ if verificar_senha():
                 
             gravar_multiplos_leads_no_arquivo(novos_leads_encontrados)
             status_texto.empty()
-            st.success(f"🔥 Varredura finalizada! +{quantidade_descoberta} provedores adicionados à base.")
+            st.success(f"🔥 Varredura finalizada! +{quantidade_descoberta} provedores adicionados.")
             time.sleep(0.5)
             st.rerun()
 
@@ -206,6 +187,24 @@ if verificar_senha():
             
             leads_selecionados = tabela_editavel[tabela_editavel["Selecionar para Excluir"] == True]["Provedor"].tolist()
             if leads_selecionados:
-                if st.button("🗑️ Excluir Provedores Selecionados da Linha", type="secondary", use_container_width=True):
+                if st.button("🗑️ Excluir Provedores Selecionados", type="secondary", use_container_width=True):
                     deletar_lista_leads_do_arquivo(leads_selecionados)
                     st.toast("Leads excluídos com sucesso!", icon="🗑️")
+                    time.sleep(0.5)
+                    st.rerun()
+        else:
+            st.warning("Nenhum provedor disponível para exibição nos filtros atuais.")
+
+        st.write("---")
+        
+        # PITCH COMERCIAL SELECIONÁVEL EM DESIGN CLEAN
+        st.markdown("### ⚡ Roteiro Automatizado de Abordagem")
+        if not df_filtrado.empty:
+            provedor_escolhido = st.selectbox("Escolha a empresa para gerar o Script do SDR:", df_filtrado["Provedor"].unique())
+            if provedor_escolhido:
+                sub_df = df_filtrado[df_filtrado["Provedor"] == provedor_escolhido]
+                
+                v_resp = str(sub_df["Responsáveis"].values[0])
+                v_local = str(sub_df["Localidade"].values[0])
+                v_prov = str(sub_df["Provedor"].values[0])
+                v_sit = str(sub_df["Situação de Mercado"].values[0]).lower()
