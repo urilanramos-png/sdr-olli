@@ -4,7 +4,7 @@ import random
 import os
 import time
 
-# Configuração de Layout e Título da Aba
+# Configuração inicial da página do Dashboard
 st.set_page_config(
     page_title="Olli Hub - Inteligência SDR", 
     page_icon="🤖", 
@@ -136,18 +136,18 @@ if verificar_senha():
     st.write("---")
 
     # ABA INTERATIVA CENTRAL DE OPERAÇÕES
-    aba_varredura, aba_analise = st.tabs(["🚀 Central de Operações & Leads", "📊 Gráficos & Estatísticas de Mercado"])
+    aba_varredura, aba_analise = st.tabs(["🚀 Central de Operations & Leads", "📊 Gráficos & Estatísticas de Mercado"])
 
     with aba_varredura:
         st.write("")
-        col_btn1, col_btn2 = st.columns([3, 1])
+        col_btn1, col_btn2 = st.columns()
         with col_btn1:
             st.markdown("### 📋 Oportunidades Mapeadas em Lote")
         with col_btn2:
             executar_busca = st.button("🚀 Executar Nova Varredura", use_container_width=True)
 
         if executar_busca:
-            nomes_provedores = ["Conecta Sul", "Veloce Fibra", "Horizonte Internet", "Maxnet Telecom", "PrimeLink", "NovaEra ISPs", "TopSpeed Banda Larga", "Nexus Fibra", "Alpha Digital", "Zeta Conect"]
+            nomes_provedores = ["Conecta Sul", "Veloce Fibra", "Horizonte Internet", "Maxnet Telecom", "PrimeLink", "NovaEra ISPs", "TopSpeed Banda Larga", "Nexus Fibra"]
             cidades = ["Joinville - SC", "Blumenau - SC", "Londrina - PR", "Maringá - PR", "Campinas - SP", "Ribeirão Preto - SP", "Caxias do Sul - RS", "Passo Fundo - RS"]
             
             banco_dores_produtos = [
@@ -167,7 +167,7 @@ if verificar_senha():
             
             status_texto.markdown("📡 **Buscando matrizes de acessos e indicadores ANATEL / Reclame Aqui...**")
             for p in range(101):
-                time.sleep(0.02)
+                time.sleep(0.01)
                 barra_progresso.progress(p)
             
             quantidade_descoberta = random.randint(2, 4)
@@ -208,3 +208,4 @@ if verificar_senha():
             if leads_selecionados:
                 if st.button("🗑️ Excluir Provedores Selecionados da Linha", type="secondary", use_container_width=True):
                     deletar_lista_leads_do_arquivo(leads_selecionados)
+                    st.toast("Leads excluídos com sucesso!", icon="🗑️")
