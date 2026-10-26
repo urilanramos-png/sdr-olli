@@ -39,9 +39,10 @@ def gravar_multiplos_leads_no_arquivo(novos_leads):
     df_consolidado.drop_duplicates(subset=["CNPJ", "Provedor"], keep="first", inplace=True)
     df_consolidado.to_csv(ARQUIVO_BANCO_DADOS, index=False)
 
-def deletar_lead_do_arquivo(index_para_deletar):
+def deletar_lead_do_arquivo(nome_provedor):
     df_atual = carregar_dados_salvos()
-    df_atual.drop(index_para_deletar, inplace=True)
+    # Remove a linha que contém o nome do provedor selecionado
+    df_atual = df_atual[df_atual["Provedor"] != nome_provedor]
     df_atual.reset_index(drop=True, inplace=True)
     df_atual.to_csv(ARQUIVO_BANCO_DADOS, index=False)
 
@@ -106,15 +107,15 @@ if verificar_senha():
         status_texto = st.empty()
         
         status_texto.markdown("📡 **Etapa 1:** Conectando com banco de dados de acessos da ANATEL e cruzando localizações...")
-        time.sleep(1.5)
+        time.sleep(1.2)
         barra_progresso.progress(35)
         
         status_texto.markdown("🕵️‍♂️ **Etapa 2:** Varrendo histórico de reclamações e índices de atendimento no Reclame Aqui...")
-        time.sleep(1.5)
+        time.sleep(1.2)
         barra_progresso.progress(70)
         
-        status_texto.markdown("📞 **Etapa 3:** Minerando telefones comerciais de contato e identifying Sócios/Diretores no QSA...")
-        time.sleep(1.5)
+        status_texto.markdown("📞 **Etapa 3:** Minerando telefones comerciais de contato e identificando Sócios/Diretores no QSA...")
+        time.sleep(1.2)
         barra_progresso.progress(100)
         
         quantidade_descoberta = random.randint(3, 5)
@@ -176,8 +177,7 @@ if verificar_senha():
                 options=df_filtrado["Provedor"].unique()
             )
             if st.button("🚨 Apagar Linha Permanentemente", type="secondary"):
-                idx_real = df[df["Provedor"] == lead_para_deletar].index
-                deletar_lead_do_arquivo(idx_real)
+                deletar_lead_do_arquivo(lead_para_deletar)
                 st.error(f"🗑️ {lead_para_deletar} removido com sucesso!")
                 time.sleep(1)
                 st.rerun()
@@ -186,15 +186,14 @@ if verificar_senha():
 
     st.write("---")
     
-    # Seção de Script de Abordagem Comercial Customizado
+    # Seção de Script de Abordagem Comercial Customizado (Ajustada com conversão direta de dicionário)
     st.subheader("⚡ Script de Abordagem para o Lead Selecionado")
     if not df_filtrado.empty:
         provedor_escolhido = st.selectbox("Escolha um provedor para ver o Script do SDR:", df_filtrado["Provedor"].unique())
         if provedor_escolhido:
-            idx = df_filtrado[df_filtrado["Provedor"] == provedor_escolhido].index[0]
-            lead = df_filtrado.loc[idx]
+            # Filtra a linha exata e converte para dicionário limpo para evitar erros de índice do pandas
+            dados_linha = df_filtrado[df_filtrado["Provedor"] == provedor_escolhido].to_dict(orient="records")[0]
             
             st.info(
                 f"**Roteiro Comercial Customizado (Pronto para copiar):**\n\n"
-                f"_\"Olá, busco pelo **{lead['Responsáveis']}**. Tudo bem? "
-                f"Aqui é o [Seu Nome] da Olli. Mapeamos o mercado de ISPs em **{lead['Localidade']}** através da nossa inteligência, e identificamos que a **{lead['Provedor']}** hoje possui um cenário de **{lead['Situação de Mercado'].lower()}**. "
+                f"_\"Olá, busco pelo **{dados_linha['Responsáveis']}**. Tudo bem? "
