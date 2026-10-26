@@ -35,7 +35,6 @@ def carregar_dados_salvos():
             df_salvo = pd.read_csv(ARQUIVO_BANCO_DADOS)
             if df_salvo.empty:
                 return pd.DataFrame(DADOS_INICIAIS)
-            # Garante a existência das novas colunas de inteligência financeira
             if "Clientes Estimados" not in df_salvo.columns:
                 df_salvo["Clientes Estimados"] = [random.randint(3000, 15000) for _ in range(len(df_salvo))]
             if "Ticket Médio (R$)" not in df_salvo.columns:
@@ -145,7 +144,6 @@ if verificar_senha():
     # =====================================================================
     with aba_leads:
         st.write("")
-        # CORREÇÃO DA LINHA 148: Adicionado o número 2 nas colunas
         col_t1, col_t2 = st.columns(2)
         with col_t1:
             st.subheader("📋 Pipeline de Leads Qualificados")
@@ -175,19 +173,21 @@ if verificar_senha():
                 txt_progresso.write("📞 **Efetuando cruzamento cadastral de Sócios no QSA...**")
                 for p in range(80, 101): time.sleep(0.01); progresso.progress(p)
                 
+                # CORREÇÃO DEFINITIVA DO DICIONÁRIO EM LOTE: Chaves perfeitamente alinhadas e fechadas
                 for _ in range(random.randint(3, 5)):
                     provedor_sorteado = random.choice(nomes_isps)
                     nomes_isps.remove(provedor_sorteado)
                     dor_sorteada = random.choice(dores_produtos)
+                    email_limpo = "diretoria@" + provedor_sorteado.lower().replace(" ", "") + ".com.br"
                     
                     novo_lead_estruturado = {
                         "Status Contato": "Não Chamado",
-                        "Provedor": provedor_sorteado + " Telecom",
-                        "Responsáveis": random.choice(nomes_sócios) + " (Diretor)",
-                        "Localidade": random.choice(cidades),
+                        "Provedor": str(provedor_sorteado) + " Telecom",
+                        "Responsáveis": str(random.choice(nomes_sócios)) + " (Diretor)",
+                        "Localidade": str(random.choice(cidades)),
                         "Telefone": f"({random.randint(11,55)}) 3199-{random.randint(1000,9999)}",
-                        "Email": f"contato@{provedor_sorteado.lower().replace(' ', '')}.com.br",
-                        "Situação de Mercado": dor_sorteada["dor"],
-                        "Produto Olli": dor_sorteada["produto"],
+                        "Email": email_limpo,
+                        "Situação de Mercado": str(dor_sorteada["dor"]),
+                        "Produto Olli": str(dor_sorteada["produto"]),
                         "CNPJ": f"{random.randint(10,99)}.{random.randint(100,999)}.{random.randint(100,999)}/0001-{random.randint(10,99)}",
-                        "Clientes Estimados": random.randint(2500, 18000),
+                        "Clientes Estimados": int(random.randint(2500, 18000)),
