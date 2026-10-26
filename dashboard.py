@@ -38,7 +38,7 @@ if verificar_senha():
     # CONEXÃO COM O BANCO DE DADOS (LINK DA SUA PLANILHA DO GOOGLE)
     # =====================================================================
     # ASSIM QUE TIVER O LINK DA SUA PLANILHA, COLE ELE AQUI EMBAIXO NO LUGAR DESSE:
-    URL_PLANILHA = "https://google.com"
+    URL_PLANILHA = "https://docs.google.com/spreadsheets/d/1cKTqh4v0SAYqNYhXsAfQrgRgVFXsApofjYJzSqPvvcI/edit?gid=0#gid=0"
 
     # Função para ler os dados da planilha e mostrar no site
     def carregar_dados():
