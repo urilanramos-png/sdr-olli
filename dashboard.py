@@ -41,7 +41,6 @@ def gravar_multiplos_leads_no_arquivo(novos_leads):
 
 def deletar_lead_do_arquivo(nome_provedor):
     df_atual = carregar_dados_salvos()
-    # Remove a linha que contém o nome do provedor selecionado
     df_atual = df_atual[df_atual["Provedor"] != nome_provedor]
     df_atual.reset_index(drop=True, inplace=True)
     df_atual.to_csv(ARQUIVO_BANCO_DADOS, index=False)
@@ -76,7 +75,6 @@ if verificar_senha():
     )
     st.sidebar.write("---")
 
-    # Título Principal da Central
     st.title("🤖 Central de Inteligência Comercial — SDR Olli IoT")
     st.markdown("Automação de varredura e enriquecimento de leads para prospecção em lote.")
     st.write("---")
@@ -157,7 +155,7 @@ if verificar_senha():
 
     st.write("---")
 
-    # Filtros na Lateral (Abaixo da marca Olli)
+    # Filtros na Lateral
     st.sidebar.header("Filtros de Prospecção")
     situacao_selecionada = st.sidebar.multiselect("Filtrar por Situação:", options=df["Situação de Mercado"].unique(), default=df["Situação de Mercado"].unique())
     df_filtrado = df[df["Situação de Mercado"].isin(situacao_selecionada)]
@@ -170,7 +168,6 @@ if verificar_senha():
     if not df_filtrado.empty:
         st.dataframe(df_filtrado, use_container_width=True)
         
-        # Caixa de Ferramenta para Exclusão de Leads
         with st.expander("🗑️ Área de Descarte (Excluir linha de lead da base)"):
             lead_para_deletar = st.selectbox(
                 "Selecione o Provedor que deseja remover do banco de dados:", 
@@ -186,15 +183,19 @@ if verificar_senha():
 
     st.write("---")
     
-    # Seção de Script de Abordagem Comercial Customizado (Lógica limpa baseada em dicionário de índice zero)
+    # Seção de Script de Abordagem Comercial Customizado (Lógica direta e limpa usando localização direta de strings)
     st.subheader("⚡ Script de Abordagem para o Lead Selecionado")
     if not df_filtrado.empty:
         provedor_escolhido = st.selectbox("Escolha um provedor para ver o Script do SDR:", df_filtrado["Provedor"].unique())
         if provedor_escolhido:
-            # Filtra a linha exata e converte para uma lista de registros limpa
-            registros = df_filtrado[df_filtrado["Provedor"] == provedor_escolhido].to_dict(orient="records")
-            lead_atual = registros[0]
+            # Captura os dados puros da linha para evitar conflitos de sintaxe
+            linha_selecionada = df_filtrado[df_filtrado["Provedor"] == provedor_escolhido]
+            
+            resp_texto = str(linha_selecionada["Responsáveis"].values[0])
+            local_texto = str(linha_selecionada["Localidade"].values[0])
+            prov_texto = str(linha_selecionada["Provedor"].values[0])
+            sit_texto = str(linha_selecionada["Situação de Mercado"].values[0]).lower()
             
             st.info(
                 f"**Roteiro Comercial Customizado (Pronto para copiar):**\n\n"
-                f"_\"Olá, busco pelo **{lead_atual['Responsáveis']}**. Tudo bem? "
+                f"_\"Olá, busco pelo **{resp_texto}**. Tudo bem? "
