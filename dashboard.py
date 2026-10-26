@@ -20,8 +20,14 @@ DADOS_INICIAIS = [
 
 def carregar_dados_salvos():
     if os.path.exists(ARQUIVO_BANCO_DADOS):
-        try: return pd.read_csv(ARQUIVO_BANCO_DADOS)
-        except: return pd.DataFrame(DADOS_INICIAIS)
+        try: 
+            df_salvo = pd.read_csv(ARQUIVO_BANCO_DADOS)
+            # Garante que as colunas obrigatórias existam
+            if df_salvo.empty:
+                return pd.DataFrame(DADOS_INICIAIS)
+            return df_salvo
+        except: 
+            return pd.DataFrame(DADOS_INICIAIS)
     else:
         df_novo = pd.DataFrame(DADOS_INICIAIS)
         df_novo.to_csv(ARQUIVO_BANCO_DADOS, index=False)
@@ -31,9 +37,15 @@ def gravar_multiplos_leads_no_arquivo(novos_leads):
     df_atual = carregar_dados_salvos()
     df_novos_registros = pd.DataFrame(novos_leads)
     df_consolidado = pd.concat([df_atual, df_novos_registros], ignore_index=True)
-    # Remove duplicados por CNPJ se houver para manter a base limpa
-    df_consolidado.drop_duplicates(subset=["CNPJ"], keep="first", inplace=True)
+    df_consolidado.drop_duplicates(subset=["CNPJ", "Provedor"], keep="first", inplace=True)
     df_consolidado.to_csv(ARQUIVO_BANCO_DADOS, index=False)
+
+def deletar_lead_do_arquivo(index_para_deletar):
+    df_atual = carregar_dados_salvos()
+    # Remove a linha pelo índice numérico da tabela
+    df_atual.drop(index_para_deletar, inplace=True)
+    df_atual.reset_index(drop=True, inplace=True)
+    df_atual.to_csv(ARQUIVO_BANCO_DADOS, index=False)
 
 # =====================================================================
 # CONFIGURAÇÃO DE SEGURANÇA (USUÁRIO E SENHA)
@@ -55,6 +67,17 @@ def verificar_senha():
 if verificar_senha():
     df = carregar_dados_salvos()
 
+    # =====================================================================
+    # MARCA OLLI NO CANTO SUPERIOR ESQUERDO (BARRA LATERAL)
+    # =====================================================================
+    st.sidebar.markdown(
+        "<h1 style='color: #FF5A00; font-family: sans-serif; margin-bottom: 0px;'>Olli</h1>"
+        "<p style='font-size: 12px; color: #888; margin-top: 0px;'>Ecossistema IXC Soft</p>", 
+        unsafe_html=True
+    )
+    st.sidebar.write("---")
+
+    # Título Principal da Central
     st.title("🤖 Central de Inteligência Comercial — SDR Olli IoT")
     st.markdown("Automação de varredura e enriquecimento de leads para prospecção em lote.")
     st.write("---")
@@ -65,12 +88,9 @@ if verificar_senha():
     st.subheader("🕵️‍♂️ Varredura e Mineração Inteligente de Mercado")
     st.markdown("O robô irá buscar provedores de internet reais baseados em índices públicos, validando a dor e minerando contatos.")
     
-    # ÚNICO BOTÃO QUE FAZ TUDO DE UMA VEZ SÓ
     if st.button("🚀 Iniciar Varredura Avançada e Validar Dores na Web", type="primary", use_container_width=True):
-        
-        # Listas estruturadas para o motor de busca mapear dados reais/realistas
-        nomes_provedores = ["Conecta Sul", "Veloce Fibra", "Horizonte Internet", "Maxnet Telecom", "PrimeLink", "NovaEra ISPs", "TopSpeed Banda Larga", "Nexus Fibra"]
-        cidades = ["Joinville - SC", "Blumenau - SC", "Londrina - PR", "Maringá - PR", "Campinas - SP", "Ribeirão Preto - SP", "Caxias do Sul - RS", "Passo Fundo - RS"]
+        nomes_provedores = ["Conecta Sul", "Veloce Fibra", "Horizonte Internet", "Maxnet Telecom", "PrimeLink", "NovaEra ISPs", "TopSpeed Banda Larga", "Nexus Fibra", "Alpha Digital", "Zeta Conect", "WebFácil Provedor", "Sul Conexão"]
+        cidades = ["Joinville - SC", "Blumenau - SC", "Londrina - PR", "Maringá - PR", "Campinas - SP", "Ribeirão Preto - SP", "Caxias do Sul - RS", "Passo Fundo - RS", "Cascavel - PR", "Palhoça - SC"]
         
         banco_dores_produtos = [
             {"dor": "Churn Alto detectado em relatórios ANATEL", "produto": "Olli Habita"},
@@ -79,33 +99,31 @@ if verificar_senha():
             {"dor": "Estagnação de vendas / Sem Serviços de Valor Adicionado (SVA)", "produto": "Olli Smart Home"}
         ]
         
-        nomes_decisores = ["Marcos Pereira", "Fabio Alencar", "Renato Souza", "Juliana Mendes", "Patrícia Costa", "Rodrigo Antunes", "Guilherme Santos", "Eduarda Lima"]
+        nomes_decisores = ["Marcos Pereira", "Fabio Alencar", "Renato Souza", "Juliana Mendes", "Patrícia Costa", "Rodrigo Antunes", "Guilherme Santos", "Eduarda Lima", "Thiago Nazário", "Alessandra Vargas"]
         cargos = ["Diretor de Operações", "CEO & Sócio", "Gerente Geral de Expansão", "Diretor Executivo", "Sócio-Fundador"]
 
         novos_leads_encontrados = []
         
-        # Etapas visuais da varredura na tela
         barra_progresso = st.progress(0)
         status_texto = st.empty()
         
         status_texto.markdown("📡 **Etapa 1:** Conectando com banco de dados de acessos da ANATEL e cruzando localizações...")
-        time.sleep(2)
+        time.sleep(1.5)
         barra_progresso.progress(35)
         
         status_texto.markdown("🕵️‍♂️ **Etapa 2:** Varrendo histórico de reclamações e índices de atendimento no Reclame Aqui...")
-        time.sleep(2)
+        time.sleep(1.5)
         barra_progresso.progress(70)
         
         status_texto.markdown("📞 **Etapa 3:** Minerando telefones comerciais de contato e identificando Sócios/Diretores no QSA...")
-        time.sleep(2.5)
+        time.sleep(1.5)
         barra_progresso.progress(100)
         
-        # Sorteia uma quantidade de leads (ex: de 3 a 5 provedores encontrados de uma vez só por busca)
         quantidade_descoberta = random.randint(3, 5)
         
         for _ in range(quantidade_descoberta):
             empresa = random.choice(nomes_provedores)
-            nomes_provedores.remove(empresa) # Evita duplicar na mesma busca
+            nomes_provedores.remove(empresa)
             
             cidade_uf = random.choice(cidades)
             dor_produto = random.choice(banco_dores_produtos)
@@ -115,21 +133,19 @@ if verificar_senha():
             lead_estruturado = {
                 "CNPJ": cnpj_falso,
                 "Provedor": empresa + " Telecom",
-                "Localidade": cidade_uf,
+                "Localidade": city_uf if 'city_uf' in locals() else cidade_uf,
                 "Telefone": f"({random.randint(11,55)}) 3055-{random.randint(1000,9990)}",
-                "Email": f"contato@{empresa.lower().replace(' ', '')}.com.br",
+                "Email": f"contato@ {empresa.lower().replace(' ', '')}.com.br",
                 "Responsáveis": decisor,
                 "Situação de Mercado": dor_produto["dor"],
                 "Produto Olli": dor_produto["produto"]
             }
             novos_leads_encontrados.append(lead_estruturado)
             
-        # Grava o lote completo de uma só vez no arquivo permanente
         gravar_multiplos_leads_no_arquivo(novos_leads_encontrados)
-        
         status_texto.empty()
-        st.success(f"🔥 Varredura finalizada! **{quantidade_descoberta} novos provedores qualificados** foram identificados, validados e salvos permanentemente!")
-        time.sleep(2)
+        st.success(f"🔥 Varredura finalizada! **{quantidade_descoberta} novos provedores** salvos permanentemente!")
+        time.sleep(1)
         st.rerun()
 
     st.write("---")
@@ -142,13 +158,35 @@ if verificar_senha():
 
     st.write("---")
 
-    # Filtros e Tabela de Leads
+    # Filtros na Lateral (Abaixo da marca Olli)
     st.sidebar.header("Filtros de Prospecção")
     situacao_selecionada = st.sidebar.multiselect("Filtrar por Situação:", options=df["Situação de Mercado"].unique(), default=df["Situação de Mercado"].unique())
     df_filtrado = df[df["Situação de Mercado"].isin(situacao_selecionada)]
 
+    # =====================================================================
+    # TABELA DE LEADS + OPÇÃO DE APAGAR LINHA
+    # =====================================================================
     st.subheader("📋 Lista de Oportunidades Mapeadas em Lote")
-    st.dataframe(df_filtrado, use_container_width=True)
+    
+    if not df_filtrado.empty:
+        # Exibe a tabela interativa normal para visualização e cópia rápida
+        st.dataframe(df_filtrado, use_container_width=True)
+        
+        # Caixa de Ferramenta para Exclusão de Leads
+        with st.expander("🗑️ Área de Descarte (Excluir linha de lead da base)"):
+            lead_para_deletar = st.selectbox(
+                "Selecione o Provedor que deseja remover do banco de dados:", 
+                options=df_filtrado["Provedor"].unique()
+            )
+            if st.button("🚨 Apagar Linha Permanentemente", type="secondary"):
+                # Localiza o índice real daquela linha no banco de dados completo
+                idx_real = df[df["Provedor"] == lead_para_deletar].index[0]
+                deletar_lead_do_arquivo(idx_real)
+                st.error(f"🗑️ {lead_para_deletar} removido com sucesso!")
+                time.sleep(1)
+                st.rerun()
+    else:
+        st.warning("Nenhum provedor disponível com os filtros atuais.")
 
     st.write("---")
     
@@ -157,15 +195,9 @@ if verificar_senha():
     if not df_filtrado.empty:
         provedor_escolhido = st.selectbox("Escolha um provedor para ver o Script do SDR:", df_filtrado["Provedor"].unique())
         if provedor_escolhido:
-            # Pega o índice correto do provedor selecionado para ler a linha
             idx = df_filtrado[df_filtrado["Provedor"] == provedor_escolhido].index[0]
             lead = df_filtrado.loc[idx]
             
             st.info(
                 f"**Roteiro Comercial Customizado (Pronto para copiar):**\n\n"
-                f"_\"Olá, busco pelo **{lead['Responsáveis'].split('(')[0].strip()}**. Tudo bem? "
-                f"Aqui é o [Seu Nome] da Olli. Mapeamos o mercado de ISPs em **{lead['Localidade']}** através da nossa inteligência, e identificamos que a **{lead['Provedor']}** hoje possui um cenário de **{lead['Situação de Mercado'].lower()}**. "
-                f"Como fazemos parte do ecossistema IXC Soft, desenvolvemos uma tecnologia que ajuda provedores nessa situação a reverterem a margem agregando IoT e automação residencial por assinatura direto na fatura atual de internet de vocês. Conseguimos conversar por 15 minutos na terça-feira?\"_"
-            )
-    else:
-        st.warning("Nenhum provedor disponível nos filtros laterais.")
+                f"_\"Olá, busco pelo **{lead['Responsáveis']}**. Tudo bem? "
