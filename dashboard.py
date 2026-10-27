@@ -207,7 +207,7 @@ if verificar_senha():
         st.write("---")
         st.subheader("📋 Pipeline de Leads Qualificados e Validados")
         
-        # EXIBIÇÃO DA TABELA DE LEADS CORRIGIDA (PARÊNTESES DEVIDAMENTE FECHADOS)
+        # EXIBIÇÃO DA TABELA DE LEADS CORRIGIDA (ESTRUTURA DE PARÊNTESES 100% FECHADA)
         if not df_filtrado.empty:
             df_filtrado.insert(0, "Descartar Lead", False)
             
@@ -215,10 +215,7 @@ if verificar_senha():
                 df_filtrado,
                 hide_index=True,
                 use_container_width=True,
-                column_config={
-                    "Status Contato": st.column_config.SelectboxColumn(
-                        "Status Contato", 
-                        options=["Não Chamado", "Chamado"], 
-                        required=True
-                    )
-                },
+                disabled=["Provedor", "Responsáveis", "Localidade", "Telefone", "Email", "Situação de Mercado", "Produto Olli", "CNPJ", "Clientes Estimados", "Ticket Médio (R$)"]
+            )
+            
+            for index_tabela in tabela_interativa.index:
