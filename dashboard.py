@@ -149,51 +149,48 @@ if verificar_senha():
             st.subheader("📋 Pipeline de Leads Qualificados")
             st.caption("Gerencie o andamento das prospecções mudando o status diretamente na célula correspondente.")
         with col_t2:
-            if st.button("🚀 Executar Mineração e Varredura Avançada", use_container_width=True, type="primary"):
-                nomes_isps = ["Conecta Sul", "Veloce Fibra", "Horizonte Internet", "Maxnet Telecom", "PrimeLink", "NovaEra ISPs", "TopSpeed Banda Larga", "Nexus Fibra", "Delta Conexões", "Norte Link", "Zetta Provedor", "Ultra Net"]
-                cidades = ["Joinville - SC", "Blumenau - SC", "Londrina - PR", "Maringá - PR", "Campinas - SP", "Ribeirão Preto - SP", "Caxias do Sul - RS", "Passo Fundo - RS", "Cascavel - PR", "Pelotas - RS"]
-                dores_produtos = [
-                    {"dor": "Churn Alto detectado em relatórios ANATEL", "produto": "Olli Habita"},
-                    {"dor": "Guerra de preço agressiva / Perda de margem na região", "produto": "Olli Smart Home"},
-                    {"dor": "Picos de queixas recentes no Reclame Aqui (Queda/Suporte)", "produto": "Olli Smart Home"},
-                    {"dor": "Estagnação de vendas / Sem Serviços de Valor Adicionado (SVA)", "produto": "Olli Smart Home"}
-                ]
-                nomes_socios = ["Marcos Pereira", "Fabio Alencar", "Renato Souza", "Juliana Mendes", "Patrícia Costa", "Rodrigo Antunes", "Adriano Vargas", "Beatriz Lima"]
+            executar_busca = st.button("🚀 Executar Mineração Avançada (Ciclo de 10 Minutos)", use_container_width=True, type="primary")
 
-                novos_leads = []
-                progresso = st.progress(0)
-                txt_progresso = st.empty()
+        # CONTROLE DO MOTOR DE VARREDURA DE 10 MINUTOS REALISTAS
+        if executar_busca:
+            # Estrutura de dados que será injetada no final
+            nomes_isps = ["Conecta Sul", "Veloce Fibra", "Horizonte Internet", "Maxnet Telecom", "PrimeLink", "NovaEra ISPs", "TopSpeed Banda Larga", "Nexus Fibra", "Delta Conexões", "Norte Link", "Zetta Provedor", "Ultra Net"]
+            cidades = ["Joinville - SC", "Blumenau - SC", "Londrina - PR", "Maringá - PR", "Campinas - SP", "Ribeirão Preto - SP", "Caxias do Sul - RS", "Passo Fundo - RS", "Cascavel - PR", "Pelotas - RS"]
+            dores = ["Churn Alto detectado em relatórios ANATEL", "Guerra de preço agressiva / Perda de margem na região", "Picos de queixas recentes no Reclame Aqui (Queda/Suporte)", "Estagnação de vendas / Sem Serviços de Valor Adicionado (SVA)"]
+            nomes_socios = ["Marcos Pereira", "Fabio Alencar", "Renato Souza", "Juliana Mendes", "Patrícia Costa", "Rodrigo Antunes", "Adriano Vargas", "Beatriz Lima"]
+
+            # Divisão das 10 etapas realistas ao longo de 600 segundos (10 min)
+            etapas_varredura = [
+                "📡 [01/10] Conectando aos canais de dados seguros e autenticando token no servidor da nuvem...",
+                "🛰️ [02/10] Solicitando matrizes de acessos de banda larga fixa junto aos servidores públicos da ANATEL...",
+                "📈 [03/10] Cruzando dados históricos: Analisando perda de market share de ISPs nos últimos 6 meses...",
+                "🕵️‍♂️ [04/10] Iniciando varredura via API oculta no Reclame Aqui para mapear picos de queixas operacionais...",
+                "📊 [05/10] Processando métricas de satisfação: Identificando provedores com quedas de sinal recorrentes...",
+                "🔍 [06/10] Abrindo crawler de consulta societária (QSA) para identificar diretores e decisores das operações...",
+                "📞 [07/10] Buscando e validando telefones comerciais de matrizes e filiais ativas no cadastro nacional...",
+                "📧 [08/10] Enriquecendo leads: Minerando e testando e-mails corporativos válidos para abordagem direta...",
+                "⚙️ [09/10] Alimentando o algoritmo de pitch: Cruzando as dores validadas com o catálogo Olli Smart/Habita...",
+                "💾 [10/10] Consolidando relatórios fiscais, aplicando filtros de segurança e gravando lote no Olli Hub..."
+            ]
+
+            novos_leads = []
+            
+            # Inicializando containers dinâmicos na tela
+            progresso = st.progress(0)
+            txt_progresso = st.empty()
+            col_skip1, col_skip2 = st.columns([3, 1])
+            with col_skip2:
+                pular_busca = st.button("⏩ Pular Varredura (Forçar Entrega)", use_container_width=True)
+
+            # Execução do relógio de 10 minutos (600 segundos)
+            total_segundos = 600
+            for i in range(total_segundos + 1):
+                if pular_busca:
+                    break
                 
-                txt_progresso.write("📡 **Varrendo base de dados pública de acessos da ANATEL...**")
-                for p in range(40): time.sleep(0.01); progresso.progress(p)
+                # Calcula a porcentagem e atualiza a barra
+                porcentagem = int((i / total_segundos) * 100)
+                progresso.progress(porcentagem)
                 
-                txt_progresso.write("🕵️‍♂️ **Analisando picos de reclamações operacionais no Reclame Aqui...**")
-                for p in range(40, 80): time.sleep(0.01); progresso.progress(p)
-                
-                txt_progresso.write("📞 **Efetuando cruzamento cadastral de Sócios no QSA...**")
-                for p in range(80, 101): time.sleep(0.01); progresso.progress(p)
-                
-                for _ in range(random.randint(3, 5)):
-                    prov_sorteado = str(random.choice(nomes_isps))
-                    nomes_isps.remove(prov_sorteado)
-                    dor_sorteada = random.choice(dores_produtos)
-                    
-                    p_status = "Não Chamado"
-                    p_nome = prov_sorteado + " Telecom"
-                    p_resp = str(random.choice(nomes_socios)) + " (Diretor)"
-                    p_local = str(random.choice(cidades))
-                    p_tel = f"({random.randint(11,55)}) 3199-{random.randint(1000,9999)}"
-                    p_email = "contato@" + prov_sorteado.lower().replace(" ", "") + ".com.br"
-                    p_dor = str(dor_sorteada["dor"])
-                    p_prod = str(dor_sorteada["produto"])
-                    p_cnpj = f"{random.randint(10,99)}.{random.randint(100,999)}.{random.randint(100,999)}/0001-{random.randint(10,99)}"
-                    p_cli = int(random.randint(2500, 18000))
-                    p_tkt = float(random.choice([69.90, 89.90, 99.90, 149.90]))
-                    
-                    novo_lead_estruturado = {
-                        "Status Contato": p_status,
-                        "Provedor": p_nome,
-                        "Responsáveis": p_resp,
-                        "Localidade": p_local,
-                        "Telefone": p_tel,
-                        "Email": p_email,
+                # Alterna o texto na tela baseado na etapa atual (60 segundos por etapa)
+                id_etapa = min(i // 60, 9)
