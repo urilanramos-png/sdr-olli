@@ -16,30 +16,16 @@ ARQUIVO_BANCO_DADOS = "banco_leads_sdr.csv"
 # Massa de dados robusta para inicialização do sistema
 DADOS_INICIAIS = [
     {
-        "Status Contato": "Não Chamado", 
-        "Provedor": "Alpha Fibra Telecom", 
-        "Responsáveis": "Carlos Silva (Diretor)",
-        "Localidade": "Chapecó - SC", 
-        "Telefone": "(49) 3321-1000", 
-        "Email": "diretoria@alphafibra.com.br", 
-        "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região", 
-        "Produto Olli": "Olli Smart Home",
-        "CNPJ": "31.862.534/0001-30", 
-        "Clientes Estimados": 12000, 
-        "Ticket Médio (R$)": 89.90
+        "Status Contato": "Não Chamado", "Provedor": "Alpha Fibra Telecom", "Responsáveis": "Carlos Silva (Diretor)",
+        "Localidade": "Chapecó - SC", "Telefone": "(49) 3321-1000", "Email": "diretoria@alphafibra.com.br", 
+        "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região", "Produto Olli": "Olli Smart Home",
+        "CNPJ": "31.862.534/0001-30", "Clientes Estimados": 12000, "Ticket Médio (R$)": 89.90
     },
     {
-        "Status Contato": "Chamado", 
-        "Provedor": "Conecta Sul Provedor", 
-        "Responsáveis": "Fabio Alencar (CEO)",
-        "Localidade": "Joinville - SC", 
-        "Telefone": "(47) 3025-4040", 
-        "Email": "fabio@conectasul.net", 
-        "Situação de Mercado": "Churn Alto detectado em relatórios ANATEL", 
-        "Produto Olli": "Olli Habita",
-        "CNPJ": "14.301.549/0001-09", 
-        "Clientes Estimados": 8500, 
-        "Ticket Médio (R$)": 95.00
+        "Status Contato": "Chamado", "Provedor": "Conecta Sul Provedor", "Responsáveis": "Fabio Alencar (CEO)",
+        "Localidade": "Joinville - SC", "Telefone": "(47) 3025-4040", "Email": "fabio@conectasul.net", 
+        "Situação de Mercado": "Churn Alto detectado em relatórios ANATEL", "Produto Olli": "Olli Habita",
+        "CNPJ": "14.301.549/0001-09", "Clientes Estimados": 8500, "Ticket Médio (R$)": 95.00
     }
 ]
 
@@ -187,7 +173,6 @@ if verificar_senha():
                 txt_progresso.write("📞 **Efetuando cruzamento cadastral de Sócios no QSA...**")
                 for p in range(80, 101): time.sleep(0.01); progresso.progress(p)
                 
-                # REVISÃO FIXA 5X: Criação simplificada de variáveis locais antes da montagem estrutural do dicionário
                 for _ in range(random.randint(3, 5)):
                     prov_sorteado = str(random.choice(nomes_isps))
                     nomes_isps.remove(prov_sorteado)
@@ -207,3 +192,8 @@ if verificar_senha():
                     
                     novo_lead_estruturado = {
                         "Status Contato": p_status,
+                        "Provedor": p_nome,
+                        "Responsáveis": p_resp,
+                        "Localidade": p_local,
+                        "Telefone": p_tel,
+                        "Email": p_email,
