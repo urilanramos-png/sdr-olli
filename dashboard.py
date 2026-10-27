@@ -192,7 +192,7 @@ if verificar_senha():
                     
                     novo_lead_estruturado = {
                         "Status Contato": p_status,
-                        "Provedor": p_nome,}
+                        "Provedor": p_nome,
                         "Responsáveis": p_resp,
                         "Localidade": p_local,
                         "Telefone": p_tel,
