@@ -146,7 +146,6 @@ if verificar_senha():
             
         if botao_automatico:
             if nome_pesquisa:
-                # O ROBÔ EXECUTA A VALIDAÇÃO AUTOMÁTICA EM ETAPAS NA TELA
                 progresso_bar = st.progress(0)
                 status_msg = st.empty()
                 
@@ -162,7 +161,6 @@ if verificar_senha():
                 time.sleep(0.5)
                 progresso_bar.progress(100)
                 
-                # Banco de Inteligência Comercial
                 banco_dores = [
                     "Churn Alto detectado em relatórios ANATEL",
                     "Guerra de preço agressiva / Perda de margem na região",
@@ -207,10 +205,10 @@ if verificar_senha():
         st.write("---")
         st.subheader("📋 Pipeline de Leads Qualificados e Validados")
         
-        # EXIBIÇÃO DA TABELA DE LEADS CORRIGIDA (ESTRUTURA DE PARÊNTESES 100% FECHADA)
         if not df_filtrado.empty:
             df_filtrado.insert(0, "Descartar Lead", False)
             
+            # Tabela de controle corporativo nativa e limpa
             tabela_interativa = st.data_editor(
                 df_filtrado,
                 hide_index=True,
@@ -218,4 +216,6 @@ if verificar_senha():
                 disabled=["Provedor", "Responsáveis", "Localidade", "Telefone", "Email", "Situação de Mercado", "Produto Olli", "CNPJ", "Clientes Estimados", "Ticket Médio (R$)"]
             )
             
+            # IDENTAÇÃO CORRIGIDA 100%: Alinhamento cirúrgico das ações do bloco for
             for index_tabela in tabela_interativa.index:
+                nome_alvo = tabela_interativa.loc[index_tabela, "Provedor"]
