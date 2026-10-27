@@ -13,19 +13,20 @@ st.set_page_config(
 
 ARQUIVO_BANCO_DADOS = "banco_leads_sdr.csv"
 
-# Massa de dados robusta para inicialização do sistema
+# Base estável de inicialização do sistema
 DADOS_INICIAIS = [
     {
-        "Status Contato": "Não Chamado", "Provedor": "Alpha Fibra Telecom", "Responsáveis": "Carlos Silva (Diretor)",
-        "Localidade": "Chapecó - SC", "Telefone": "(49) 3321-1000", "Email": "diretoria@alphafibra.com.br", 
-        "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região", "Produto Olli": "Olli Smart Home",
-        "CNPJ": "31.862.534/0001-30", "Clientes Estimados": 12000, "Ticket Médio (R$)": 89.90
-    },
-    {
-        "Status Contato": "Chamado", "Provedor": "Conecta Sul Provedor", "Responsáveis": "Fabio Alencar (CEO)",
-        "Localidade": "Joinville - SC", "Telefone": "(47) 3025-4040", "Email": "fabio@conectasul.net", 
-        "Situação de Mercado": "Churn Alto detectado em relatórios ANATEL", "Produto Olli": "Olli Habita",
-        "CNPJ": "14.301.549/0001-09", "Clientes Estimados": 8500, "Ticket Médio (R$)": 95.00
+        "Status Contato": "Não Chamado", 
+        "Provedor": "Alpha Fibra Telecom", 
+        "Responsáveis": "Carlos Silva (Diretor)",
+        "Localidade": "Chapecó - SC", 
+        "Telefone": "(49) 3321-1000", 
+        "Email": "diretoria@alphafibra.com.br", 
+        "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região", 
+        "Produto Olli": "Olli Smart Home",
+        "CNPJ": "31.862.534/0001-30", 
+        "Clientes Estimados": 12000, 
+        "Ticket Médio (R$)": 89.90
     }
 ]
 
@@ -206,10 +207,18 @@ if verificar_senha():
         st.write("---")
         st.subheader("📋 Pipeline de Leads Qualificados e Validados")
         
-        # EXIBIÇÃO DA TABELA DE LEADS
+        # EXIBIÇÃO DA TABELA DE LEADS CORRIGIDA (PARÊNTESES DEVIDAMENTE FECHADOS)
         if not df_filtrado.empty:
             df_filtrado.insert(0, "Descartar Lead", False)
             
             tabela_interativa = st.data_editor(
                 df_filtrado,
                 hide_index=True,
+                use_container_width=True,
+                column_config={
+                    "Status Contato": st.column_config.SelectboxColumn(
+                        "Status Contato", 
+                        options=["Não Chamado", "Chamado"], 
+                        required=True
+                    )
+                },
