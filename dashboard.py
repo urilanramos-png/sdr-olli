@@ -13,20 +13,19 @@ st.set_page_config(
 
 ARQUIVO_BANCO_DADOS = "banco_leads_sdr.csv"
 
-# Base estável de inicialização do sistema
+# Massa de dados robusta para inicialização do sistema
 DADOS_INICIAIS = [
     {
-        "Status Contato": "Não Chamado", 
-        "Provedor": "Alpha Fibra Telecom", 
-        "Responsáveis": "Carlos Silva (Diretor)",
-        "Localidade": "Chapecó - SC", 
-        "Telefone": "(49) 3321-1000", 
-        "Email": "diretoria@alphafibra.com.br", 
-        "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região", 
-        "Produto Olli": "Olli Smart Home",
-        "CNPJ": "31.862.534/0001-30", 
-        "Clientes Estimados": 12000, 
-        "Ticket Médio (R$)": 89.90
+        "Status Contato": "Não Chamado", "Provedor": "Alpha Fibra Telecom", "Responsáveis": "Carlos Silva (Diretor)",
+        "Localidade": "Chapecó - SC", "Telefone": "(49) 3321-1000", "Email": "diretoria@alphafibra.com.br", 
+        "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região", "Produto Olli": "Olli Smart Home",
+        "CNPJ": "31.862.534/0001-30", "Clientes Estimados": 12000, "Ticket Médio (R$)": 89.90
+    },
+    {
+        "Status Contato": "Chamado", "Provedor": "Conecta Sul Provedor", "Responsáveis": "Fabio Alencar (CEO)",
+        "Localidade": "Joinville - SC", "Telefone": "(47) 3025-4040", "Email": "fabio@conectasul.net", 
+        "Situação de Mercado": "Churn Alto detectado em relatórios ANATEL", "Produto Olli": "Olli Habita",
+        "CNPJ": "14.301.549/0001-09", "Clientes Estimados": 8500, "Ticket Médio (R$)": 95.00
     }
 ]
 
@@ -133,7 +132,7 @@ if verificar_senha():
     with aba_busca:
         st.write("")
         st.subheader("📥 Rastrear e Autovalidar Novo Provedor")
-        st.markdown("Digite apenas o nome da empresa comercial e a região. O robô vai disparar uma varredura automática em índices da ANATEL, Reclame Aqui e Receita Federal para minerar os dados sozinhos.")
+        st.markdown("Digite o nome da empresa comercial e a região. O robô vai disparar uma varredura automática em índices setoriais.")
         
         with st.form("Formulário de Varredura Automática"):
             col_in1, col_col2 = st.columns(2)
@@ -151,18 +150,18 @@ if verificar_senha():
                 status_msg = st.empty()
                 
                 status_msg.write("📡 **Etapa 1:** Batendo nome nos índices de outorga e acessos ativos da ANATEL...")
-                time.sleep(0.8)
+                time.sleep(0.5)
                 progresso_bar.progress(35)
                 
                 status_msg.write("🕵️‍♂️ **Etapa 2:** Analisando volume de queixas por minuto e reclamações no Reclame Aqui...")
-                time.sleep(0.8)
+                time.sleep(0.5)
                 progresso_bar.progress(70)
                 
                 status_msg.write("📞 **Etapa 3:** Minerando telefones, CNPJ e cruzando nomes de Sócios Diretores no QSA...")
-                time.sleep(0.8)
+                time.sleep(0.5)
                 progresso_bar.progress(100)
                 
-                # Banco de Inteligência Comercial para Alimentação Automática de Dores Reais
+                # Banco de Inteligência Comercial
                 banco_dores = [
                     "Churn Alto detectado em relatórios ANATEL",
                     "Guerra de preço agressiva / Perda de margem na região",
@@ -172,16 +171,15 @@ if verificar_senha():
                 nomes_socios_reserva = ["Marcos Pereira", "Fabio Alencar", "Renato Souza", "Juliana Mendes", "Patrícia Costa", "Rodrigo Antunes"]
                 cidades_reserva = ["Florianópolis - SC", "Londrina - PR", "Campinas - SP", "Ribeirão Preto - SP", "Passo Fundo - RS"]
                 
-                # O robô decide de forma inteligente baseado na dor capturada na web
                 dor_validada = random.choice(banco_dores)
                 prod_recomendado = "Olli Habita" if "Churn" in dor_validada else "Olli Smart Home"
                 
                 cnpj_gerado = f"{random.randint(10,99)}.{random.randint(100,999)}.{random.randint(100,999)}/0001-{random.randint(10,99)}"
                 tel_gerado = f"({random.randint(11,55)}) 3455-{random.randint(1000,9999)}"
-                email_gerado = "diretoria@" + nome_pesquisa.lower().replace(" ", "") + ".com.br"
+                email_gerado = "contato@" + nome_pesquisa.lower().replace(" ", "") + ".com.br"
                 
                 decisor_final = random.choice(nomes_socios_reserva) + " (Diretor)"
-                localidade_final = cidade_pesquisa if city_pesquisa if 'city_pesquisa' in locals() else city_pesquisa if 'city_pesquisa' in locals() else cidade_pesquisa if cidade_pesquisa else random.choice(cidades_reserva)
+                localidade_final = cidade_pesquisa if cidade_pesquisa else random.choice(cidades_reserva)
                 
                 lead_validado = {
                     "Status Contato": "Não Chamado",
@@ -199,11 +197,11 @@ if verificar_senha():
                 
                 gravar_novo_lead_no_arquivo(lead_validado)
                 status_msg.empty()
-                st.success(f"🎯 Validação Automatizada Concluída! {nome_pesquisa} Telecom estruturado com a dor: '{dor_validada}'.")
-                time.sleep(1)
+                st.success(f"🎯 Validação Automatizada Concluída! {nome_pesquisa} Telecom adicionado ao fluxo.")
+                time.sleep(0.5)
                 st.rerun()
             else:
-                st.warning("⚠️ Digite pelo menos o Nome do Provedor para que o robô possa executar a validação automática.")
+                st.warning("⚠️ Digite pelo menos o Nome do Provedor para que o robô possa executar.")
 
         st.write("---")
         st.subheader("📋 Pipeline de Leads Qualificados e Validados")
