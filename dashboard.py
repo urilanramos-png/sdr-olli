@@ -6,13 +6,13 @@ import plotly.graph_objects as go
 import random
 import os
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # =====================================================================
-# CONSTANTES E CONFIGURAÇÕES GLOBAIS
+# CONFIGURAÇÕES GLOBAIS E ESTILIZAÇÃO DA INTERFACE
 # =====================================================================
-ARQUIVO_BANCO_DADOS = "banco_leads_sdr_v2.csv"
-ARQUIVO_LOGS = "sdr_system_logs.txt"
+ARQUIVO_BANCO_DADOS = "banco_leads_sdr_enterprise.csv"
+ARQUIVO_LOGS = "sdr_system_audit.log"
 
 st.set_page_config(
     page_title="Olli Hub Enterprise v2.0 | SDR Intelligence & AI Matrix",
@@ -21,47 +21,55 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Estilização CSS customizada para visual corporativo premium (Modo Escuro/Claro Suportado)
+# Injeção de CSS Customizado para uma interface corporativa moderna
 st.markdown("""
 <style>
-    .reportview-container { background: #f5f7f9; }
-    .main .block-container { padding-top: 2rem; }
+    .main .block-container { padding-top: 1.5rem; padding-bottom: 1.5rem; }
     div.stButton > button:first-child {
         background-color: #4F46E5;
         color: white;
         border-radius: 6px;
         font-weight: 600;
+        border: none;
+        padding: 0.5rem 1rem;
         transition: all 0.3s ease;
     }
     div.stButton > button:first-child:hover {
         background-color: #4338CA;
         transform: translateY(-1px);
     }
-    .metric-card {
+    .kpi-card {
         background-color: #ffffff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        padding: 22px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07);
         border-left: 5px solid #4F46E5;
+        margin-bottom: 1rem;
     }
+    .kpi-title { color: #6B7280; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; margin: 0; }
+    .kpi-value { margin: 8px 0 0 0; color: #1F2937; font-size: 28px; font-weight: 700; }
 </style>
 """, unsafe_allow_html=True)
 
 # =====================================================================
-# SISTEMA DE LOGS E AUDITORIA
+# MÓDULO DE AUDITORIA, TELEMETRIA E LOGS
 # =====================================================================
 def registrar_log(mensagem: str, usuario: str = "Sistema"):
+    """Registra eventos críticos em um arquivo local para governança de dados."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_linha = f"[{timestamp}] [{usuario}] {mensagem}\n"
-    with open(ARQUIVO_LOGS, "a", encoding="utf-8") as f:
-        f.write(log_linha)
+    try:
+        with open(ARQUIVO_LOGS, "a", encoding="utf-8") as f:
+            f.write(log_linha)
+    except IOError:
+        pass
 
 # =====================================================================
-# GERENCIAMENTO DE MOCK DATA & BASE DE DADOS
+# CAMADA DE PERSISTÊNCIA DE DADOS (CRUD ENGINE)
 # =====================================================================
-DADOS_DEMO = [
+DADOS_INICIAIS_MOCK = [
     {
-        "ID": "ISP-001",
+        "ID": "ISP-701",
         "Status Contato": "Qualificado",
         "Provedor": "Alpha Fibra Telecom",
         "Responsáveis": "Carlos Silva",
@@ -74,14 +82,12 @@ DADOS_DEMO = [
         "CNPJ": "31.862.534/0001-30",
         "Clientes Estimados": 12000,
         "Ticket Médio (R$)": 89.90,
-        "Data Cadastro": "2026-10-01",
-        "Última Interação": "2026-10-28",
-        "SDR Responsável": "Alice Costa",
-        "Score Conectividade": 85,
+        "Data Cadastro": "2026-01-10",
+        "Score Conectividade": 88,
         "Origem Lead": "Outbound LinkedIn"
     },
     {
-        "ID": "ISP-002",
+        "ID": "ISP-702",
         "Status Contato": "Não Chamado",
         "Provedor": "Beta Net Telecom",
         "Responsáveis": "Rodrigo Ramos",
@@ -94,121 +100,110 @@ DADOS_DEMO = [
         "CNPJ": "14.552.112/0001-99",
         "Clientes Estimados": 7500,
         "Ticket Médio (R$)": 79.90,
-        "Data Cadastro": "2026-10-15",
-        "Última Interação": "2026-10-15",
-        "SDR Responsável": "Bruno Melo",
-        "Score Conectividade": 42,
+        "Data Cadastro": "2026-02-15",
+        "Score Conectividade": 45,
         "Origem Lead": "Mapeamento ANATEL"
     },
     {
-        "ID": "ISP-003",
+        "ID": "ISP-703",
         "Status Contato": "Agendado (Reunião)",
         "Provedor": "Wave Conectividade",
         "Responsáveis": "Juliana Mendes",
-        "Cargo": "Gerente de Marketing / Produto",
+        "Cargo": "Gerente de Marketing",
         "Localidade": "Maringá - PR",
         "Telefone": "(44) 99881-2233",
         "Email": "juliana@waveconect.com.br",
         "Situação de Mercado": "Estagnação de vendas / Sem Serviços de Valor Adicionado (SVA)",
-        "Produto Olli Smart Home",
+        "Produto Olli": "Olli Smart Home",
         "CNPJ": "45.123.789/0001-02",
         "Clientes Estimados": 24000,
         "Ticket Médio (R$)": 110.00,
-        "Data Cadastro": "2026-10-20",
-        "Última Interação": "2026-10-29",
-        "SDR Responsável": "Alice Costa",
-        "Score Conectividade": 91,
+        "Data Cadastro": "2026-03-22",
+        "Score Conectividade": 92,
         "Origem Lead": "Inbound - Evento IXC"
     }
 ]
 
-def inicializar_banco_dados():
+def inicializar_e_carregar_dados() -> pd.DataFrame:
+    """Garante a existência do banco de dados local com tratamento de integridade schema-level."""
     if not os.path.exists(ARQUIVO_BANCO_DADOS):
-        df = pd.DataFrame(DADOS_DEMO)
+        df = pd.DataFrame(DADOS_INICIAIS_MOCK)
         df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
-        registrar_log("Banco de dados inicial criado com dados mockados de alta fidelidade.")
-    else:
-        # Garantir integridade de colunas estruturais novas
+        registrar_log("Base de dados corporativa inicializada com sucesso.")
+        return df
+    try:
         df = pd.read_csv(ARQUIVO_BANCO_DADOS, encoding="utf-8")
-        colunas_obrigatorias = [
-            "ID", "Status Contato", "Provedor", "Responsáveis", "Cargo", "Localidade", 
-            "Telefone", "Email", "Situação de Mercado", "Produto Olli", "CNPJ", 
-            "Clientes Estimados", "Ticket Médio (R$)", "Data Cadastro", "Última Interação", 
-            "SDR Responsável", "Score Conectividade", "Origem Lead"
-        ]
+        # Mecanismo de self-healing caso colunas estruturais sumam por erro do usuário
+        colunas_obrigatorias = ["ID", "Status Contato", "Provedor", "Responsáveis", "Cargo", "Localidade", 
+                                "Telefone", "Email", "Situação de Mercado", "Produto Olli", "CNPJ", 
+                                "Clientes Estimados", "Ticket Médio (R$)", "Data Cadastro", "Score Conectividade", "Origem Lead"]
         mudou = False
         for col in colunas_obrigatorias:
             if col not in df.columns:
-                if col == "Score Conectividade":
-                    df[col] = np.random.randint(30, 99, size=len(df))
-                elif col == "Origem Lead":
-                    df[col] = "Outbound"
-                else:
-                    df[col] = "Não Informado"
+                df[col] = 0 if "Estimados" in col or "Score" in col else "Não Informado"
                 mudou = True
         if mudou:
             df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
-
-def carregar_leads() -> pd.DataFrame:
-    inicializar_banco_dados()
-    try:
-        df = pd.read_csv(ARQUIVO_BANCO_DADOS, encoding="utf-8")
         return df
     except Exception as e:
-        st.error(f"Erro crítico ao ler base de dados: {e}")
-        return pd.DataFrame(DADOS_DEMO)
+        registrar_log(f"Falha ao carregar banco de dados: {str(e)}", "ERRO")
+        return pd.DataFrame(DADOS_INICIAIS_MOCK)
 
-def salvar_leads(df: pd.DataFrame):
-    df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
+def salvar_dados_locais(df: pd.DataFrame):
+    """Grava as modificações no arquivo CSV local de forma persistente."""
+    try:
+        df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
+    except Exception as e:
+        st.error(f"Erro ao salvar alterações no disco: {e}")
 
 # =====================================================================
-# MOTORES AUXILIARES DE INTELIGÊNCIA ARTIFICIAL (PROMPTING & COPYWRITING)
+# MOTOR COGNITIVO E ENGENHARIA DE PROMPTS PARA SDR
 # =====================================================================
-class PromptEngine:
+class MotorInteligenciaSDR:
     @staticmethod
-    def gerar_matriz_dor(situacao: str) -> dict:
+    def obter_matriz_contextual(situacao_mercado: str) -> dict:
+        """Mapeia dores operacionais de provedores para gatilhos de abordagem comercial."""
         matrizes = {
             "Guerra de preço agressiva / Perda de margem na região": {
-                "Gancho Principal": "Aumento do ARPU (Ticket Médio) sem precisar subir o preço da banda larga pura.",
-                "Estratégia": "Mostrar que agregar a Olli cria diferenciação imbatível contra provedores 'comoditizados'.",
-                "Framework Copy": "PAS (Problema, Agitação, Solução)"
+                "Gancho Principal": "Diferenciação competitiva e blindagem de margem agregando valor perceptual.",
+                "Estratégia": "Posicionar a Olli como acelerador de receita marginal, eliminando a necessidade de dar descontos em conexões puras.",
+                "Framework": "PAS (Problema, Agitação, Solução)"
             },
             "Churn Alto detectado em relatórios ANATEL": {
-                "Gancho Principal": "Aumento do LTV (Tempo de vida do cliente) e fidelização forçada por ecossistema smart home.",
-                "Estratégia": "Comprovar que SVAs de automação e segurança reduzem a evasão em até 35% nos primeiros 6 meses.",
-                "Framework Copy": "AIDA (Atenção, Interesse, Desejo, Ação)"
+                "Gancho Principal": "Criação de ecossistema residencial integrado para aumento drástico de LTV.",
+                "Estratégia": "Mostrar que agregar segurança e smart home vincula o cliente ao provedor, reduzindo quebra de contratos em até 30%.",
+                "Framework": "AIDA (Atenção, Interesse, Desejo, Ação)"
             },
             "Estagnação de vendas / Sem Serviços de Valor Adicionado (SVA)": {
-                "Gancho Principal": "Desbloqueio de novas linhas de receita usando a base instalada atual.",
-                "Estratégia": "Vender Upgrades estruturados de planos de conectividade + Olli integrado.",
-                "Framework Copy": "Storytelling focado em ROI corporativo"
+                "Gancho Principal": "Monetização da base de clientes existente através de cross-selling estruturado.",
+                "Estratégia": "Introduzir a Olli como novo portfólio de faturamento imediato para contornar o teto de vendas de banda larga.",
+                "Framework": "Venda Consultiva Baseada em Valor"
             },
             "Picos de queixas recentes no Reclame Aqui (Queda/Suporte)": {
-                "Gancho Principal": "Mudança da percepção de valor: De infraestrutura instável para Hub de Experiência Familiar.",
-                "Estratégia": "Posicionar a Olli como solução premium de estabilidade perceptual na casa do usuário final.",
-                "Framework Copy": "Abordagem Consultiva e Inversão de Risco"
+                "Gancho Principal": "Melhoria da percepção de estabilidade dentro do lar do consumidor final.",
+                "Estratégia": "Mudar a conversa de infraestrutura física caída para uma experiência de automação residencial de alta fidelidade.",
+                "Framework": "Inversão de Risco e Restauração de Confiança"
             }
         }
-        return matrizes.get(situacao, {
-            "Gancho Principal": "Inovação tecnológica e entrega de valor em ecossistemas de tecnologia.",
-            "Estratégia": "Apresentar a Olli como parceira oficial integrada ao ecossistema IXC Soft.",
-            "Framework Copy": "Abordagem Clássica B2B"
+        return matrizes.get(situacao_mercado, {
+            "Gancho Principal": "Parceria estratégica de tecnologia e valor agregado para ISPs corporativos.",
+            "Estratégia": "Apresentar as vantagens integradas nativas do ecossistema IXC Soft para controle operacional.",
+            "Framework": "Abordagem Linear B2B"
         })
 
     @staticmethod
-    def construir_script_ abordagem(lead_row, matriz: dict) -> str:
-        script = f"""---
-### 🛠️ SCRIPT DE ABORDAGEM PERSONALIZADO (C-LEVEL INTERACTION)
-**Alvo:** {lead_row['Responsáveis']} ({lead_row['Cargo']}) | **Empresa:** {lead_row['Provedor']}
-**Canal Recomendado:** LinkedIn Inmail ou Cold Call Direta via WhatsApp
+    def construir_script_venda(linha_lead, matriz: dict) -> str:
+        """Gera um roteiro hiper-personalizado focado em conversão de C-Levels."""
+        script = f"""
+```markdown
+# 📞 SCRIPT DE ABORDAGEM PERSONALIZADO (ALTA CONVERSÃO)
+*   **Alvo:** {linha_lead['Responsáveis']} ({linha_lead['Cargo']}) | **ISP:** {linha_lead['Provedor']}
+*   **Canal Sugerido:** Mensagem Direta LinkedIn InMail ou Cold Call Telefônica
 
-**[Abertura de Alto Impacto]**
-"Olá, {lead_row['Responsáveis']}. Tudo bem? Tenho acompanhado a expansão da {lead_row['Provedor']} em {lead_row['Localidade']} e notei o dinamismo do mercado local. No cenário atual, sabemos que gerenciar a percepção de valor da marca é um desafio crítico para operações do seu porte."
+## 🎯 Abertura Estratégica
+"Olá, {linha_lead['Responsáveis']}. Tudo bem? Acompanho o crescimento da {linha_lead['Provedor']} na região de {linha_lead['Localidade']} e notei o quão competitiva a praça tem se tornado. Para operações robustas como a sua, gerenciar a rentabilidade média virou o grande divisor de águas."
 
-**[Agitação da Dor - Foco Baseado em Dados]**
-"Olhando para os dados de mercado e movimentações dos provedores da região, fica claro que lidar com [{lead_row['Situação de Mercado'].lower()}] exige ir além de simplesmente vender mais megas ou fibra pura. O mercado pune quem compete apenas por preço."
+## 🔥 Diagnóstico e Agitação da Dor
+"Analisando indicadores macro, fica nítido que enfrentar a conjuntura de [{linha_lead['Situação de Mercado'].lower()}] exige saídas que fujam da guerra tarifária convencional. Quem vende apenas pacotes de megas está sacrificando margem líquida toda semana."
 
-**[Apresentação da Proposta de Valor Olli + IXC Soft]**
-"É exatamente aqui que nós, do ecossistema IXC Soft através da Olli, estamos ajudando ISPs com mais de {lead_row['Clientes Estimados']:,} assinantes. Nós injetamos uma camada de Smart Home e Automação diretamente na sua oferta. Isso muda o jogo: em vez de brigar por R$ 5,00 de desconto, sua operação desbloqueia uma nova linha de receita, estabiliza o churn e eleva o ticket médio real."
-
-**[Chamada para Ação (CTA) Assíncrona]**
+## 🚀 Proposta de Valor Conectada (Olli + IXC Soft)
