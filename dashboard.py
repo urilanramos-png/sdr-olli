@@ -133,7 +133,6 @@ def inicializar_e_carregar_dados() -> pd.DataFrame:
         return df
     try:
         df = pd.read_csv(ARQUIVO_BANCO_DADOS, encoding="utf-8")
-        # Mecanismo de self-healing caso colunas estruturais sumam por erro do usuário
         colunas_obrigatorias = ["ID", "Status Contato", "Provedor", "Responsáveis", "Cargo", "Localidade", 
                                 "Telefone", "Email", "Situação de Mercado", "Produto Olli", "CNPJ", 
                                 "Clientes Estimados", "Ticket Médio (R$)", "Data Cadastro", "Score Conectividade", "Origem Lead"]
@@ -150,7 +149,7 @@ def inicializar_e_carregar_dados() -> pd.DataFrame:
         return pd.DataFrame(DADOS_INICIAIS_MOCK)
 
 def salvar_dados_locais(df: pd.DataFrame):
-    """Grava as modificações no arquivo CSV local de forma persistente."""
+    """Grava as modificações no arquivo CSV local de forma persistentente."""
     try:
         df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
     except Exception as e:
@@ -193,17 +192,19 @@ class MotorInteligenciaSDR:
 
     @staticmethod
     def construir_script_venda(linha_lead, matriz: dict) -> str:
-        """Gera um roteiro hiper-personalizado focado em conversão de C-Levels."""
-        script = f"""
-```markdown
-# 📞 SCRIPT DE ABORDAGEM PERSONALIZADO (ALTA CONVERSÃO)
-*   **Alvo:** {linha_lead['Responsáveis']} ({linha_lead['Cargo']}) | **ISP:** {linha_lead['Provedor']}
-*   **Canal Sugerido:** Mensagem Direta LinkedIn InMail ou Cold Call Telefônica
-
-## 🎯 Abertura Estratégica
-"Olá, {linha_lead['Responsáveis']}. Tudo bem? Acompanho o crescimento da {linha_lead['Provedor']} na região de {linha_lead['Localidade']} e notei o quão competitiva a praça tem se tornado. Para operações robustas como a sua, gerenciar a rentabilidade média virou o grande divisor de águas."
-
-## 🔥 Diagnóstico e Agitação da Dor
-"Analisando indicadores macro, fica nítido que enfrentar a conjuntura de [{linha_lead['Situação de Mercado'].lower()}] exige saídas que fujam da guerra tarifária convencional. Quem vende apenas pacotes de megas está sacrificando margem líquida toda semana."
-
-## 🚀 Proposta de Valor Conectada (Olli + IXC Soft)
+        """Gera um roteiro hiper-personalizado livre de erros de interpolação de aspas triplas."""
+        script_modelo = (
+            "### 📞 SCRIPT DE ABORDAGEM PERSONALIZADO (ALTA CONVERSÃO)\n"
+            "* **Alvo:** {responsavel} ({cargo}) | **ISP:** {provedor}\n"
+            "* **Canal Sugerido:** Mensagem Direta LinkedIn InMail ou Cold Call\n\n"
+            "#### 🎯 Abertura Estratégica\n"
+            "\"Olá, {responsavel}. Tudo bem? Acompanho o crescimento da {provedor} na região de {localidade} "
+            "e notei o quão competitiva a praça tem se tornado. Para operações robustas como a sua, gerenciar "
+            "a rentabilidade média virou o grande divisor de águas.\"\n\n"
+            "#### 🔥 Diagnóstico e Agitação da Dor\n"
+            "\"Analisando indicadores macro, fica nítido que enfrentar a conjuntura de [{dor_mercado}] "
+            "exige saídas que fujam da guerra tarifária convencional. Quem vende apenas pacotes de megas "
+            "está sacrificando margem líquida toda semana.\"\n\n"
+            "#### 🚀 Proposta de Valor Conectada (Olli + IXC Soft)\n"
+            "\"É por isso que estruturamos uma solução de Smart Home e Automação via Olli, totalmente integrada "
+            "ao ecossistema IXC Soft. Para sua operação, que já conta com cerca de {clientes:,} assinantes, "
