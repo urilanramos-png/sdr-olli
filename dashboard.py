@@ -203,8 +203,8 @@ class MotorInteligenciaSDR:
             "a rentabilidade média virou o grande divisor de águas.\"\n\n"
             "#### 🔥 Diagnóstico e Agitação da Dor\n"
             "\"Analisando indicadores macro, fica nítido que enfrentar a conjuntura de [{dor_mercado}] "
-            "exige saídas que fujam da guerra tarifária convencional. Quem vende apenas pacotes de megas " )
+            "exige saídas que fujam da guerra tarifária convencional. Quem vende apenas pacotes de megas " 
             "está sacrificando margem líquida toda semana.\"\n\n"
             "#### 🚀 Proposta de Valor Conectada (Olli + IXC Soft)\n"
             "\"É por isso que estruturamos uma solução de Smart Home e Automação via Olli, totalmente integrada "
-            "ao ecossistema IXC Soft. Para sua operação, que já conta com cerca de {clientes:,} assinantes, "
+            "ao ecossistema IXC Soft. Para sua operação, que já conta com cerca de {clientes:,} assinantes, " )
