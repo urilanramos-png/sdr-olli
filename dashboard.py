@@ -149,7 +149,7 @@ def inicializar_e_carregar_dados() -> pd.DataFrame:
         return pd.DataFrame(DADOS_INICIAIS_MOCK)
 
 def salvar_dados_locais(df: pd.DataFrame):
-    """Grava as modificações no arquivo CSV local de forma persistentente."""
+    """Grava as modificações no arquivo CSV local de forma permanente."""
     try:
         df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
     except Exception as e:
@@ -192,7 +192,7 @@ class MotorInteligenciaSDR:
 
     @staticmethod
     def construir_script_venda(linha_lead, matriz: dict) -> str:
-        """Gera um roteiro hiper-personalizado livre de erros de interpolação de aspas triplas."""
+        """Gera um roteiro hiper-personalizado usando formatação direta por chaves."""
         script_modelo = (
             "### 📞 SCRIPT DE ABORDAGEM PERSONALIZADO (ALTA CONVERSÃO)\n"
             "* **Alvo:** {responsavel} ({cargo}) | **ISP:** {provedor}\n"
