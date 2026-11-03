@@ -87,6 +87,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Mascote vetorial em alta resolução: o halo roxo acompanha o cursor e a
+# lanterna gira para apontar na direção do mouse.
 components.html(
     """
     <script>
@@ -98,55 +100,113 @@ components.html(
         const style = doc.createElement('style');
         style.textContent = `
           #olli-pointer-light {
-            position: fixed; z-index: 2147483645; width: 150px; height: 150px; left: 0; top: 0;
-            pointer-events: none; opacity: 0; transform: translate(-50%, -50%);
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,.2) 0%, rgba(216,180,254,.18) 18%, rgba(168,85,247,.16) 38%, rgba(124,58,237,.08) 58%, transparent 72%);
-            filter: blur(3px); transition: opacity .2s ease;
+            position: fixed; z-index: 2147483645; width: 190px; height: 190px;
+            left: 0; top: 0; pointer-events: none; opacity: 0;
+            transform: translate(-50%, -50%); border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,.38) 0%, rgba(216,180,254,.35) 14%, rgba(168,85,247,.30) 34%, rgba(124,58,237,.17) 55%, transparent 74%);
+            filter: blur(5px); transition: opacity .16s ease;
           }
           #olli-walker {
-            position: fixed; z-index: 2147483644; left: 50%; bottom: 12px; width: 110px; height: 125px;
-            pointer-events: none; opacity: .72; transform: translateX(-50%);
-            animation: olli-walk 10s ease-in-out infinite alternate;
+            position: fixed; z-index: 2147483644; left: 50%; bottom: 8px;
+            width: 176px; height: 200px; pointer-events: none; opacity: .92;
+            transform: translateX(-50%);
+            filter: drop-shadow(0 14px 22px rgba(124,58,237,.42));
+            animation: olli-walk 12s ease-in-out infinite alternate;
           }
           #olli-walker svg { width: 100%; height: 100%; overflow: visible; }
-          #olli-walker .beam { transform-origin: 58px 66px; animation: olli-beam 2.6s ease-in-out infinite alternate; }
-          @keyframes olli-walk { from { margin-left: -34vw; } to { margin-left: 34vw; } }
-          @keyframes olli-beam { from { transform: rotate(-12deg); opacity: .45; } to { transform: rotate(12deg); opacity: .8; } }
-          @media (prefers-reduced-motion: reduce) { #olli-walker, #olli-walker .beam { animation: none !important; } }
+          #olli-walker .character { transform-origin: center; animation: olli-float 2.8s ease-in-out infinite alternate; }
+          #olli-lantern { transform-box: view-box; transition: transform .12s ease-out; }
+          #olli-beam { opacity: .78; filter: drop-shadow(0 0 8px rgba(192,132,252,.95)); }
+          @keyframes olli-walk { from { margin-left: -32vw; } to { margin-left: 32vw; } }
+          @keyframes olli-float { from { translate: 0 0; } to { translate: 0 -4px; } }
+          @media (prefers-reduced-motion: reduce) {
+            #olli-walker, #olli-walker .character { animation: none !important; }
+            #olli-lantern { transition: none !important; }
+          }
         `;
         doc.head.appendChild(style);
 
         const wrap = doc.createElement('div');
         wrap.id = 'olli-effects';
         wrap.innerHTML = `
-          <div id="olli-pointer-light"></div>
+          <div id="olli-pointer-light" aria-hidden="true"></div>
           <div id="olli-walker" aria-hidden="true">
-            <svg viewBox="0 0 110 125" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 160 180" xmlns="http://www.w3.org/2000/svg" role="presentation">
               <defs>
-                <radialGradient id="lanternGlow">
-                  <stop stop-color="#FDE68A" stop-opacity=".85"/>
+                <radialGradient id="olliGlow" cx="50%" cy="50%" r="50%">
+                  <stop stop-color="#FFF7CC" stop-opacity=".98"/>
+                  <stop offset=".38" stop-color="#FDE68A" stop-opacity=".72"/>
                   <stop offset="1" stop-color="#A855F7" stop-opacity="0"/>
                 </radialGradient>
+                <linearGradient id="olliBody" x1="0" y1="0" x2="1" y2="1">
+                  <stop stop-color="#F5D0FE"/><stop offset=".42" stop-color="#C4B5FD"/><stop offset="1" stop-color="#6D28D9"/>
+                </linearGradient>
+                <linearGradient id="olliFace" x1="0" y1="0" x2="1" y2="1">
+                  <stop stop-color="#FFF7ED"/><stop offset="1" stop-color="#E9D5FF"/>
+                </linearGradient>
+                <linearGradient id="olliClothes" x1="0" y1="0" x2="1" y2="1">
+                  <stop stop-color="#C4B5FD"/><stop offset=".55" stop-color="#8B5CF6"/><stop offset="1" stop-color="#4C1D95"/>
+                </linearGradient>
+                <linearGradient id="olliMetal" x1="0" y1="0" x2="1" y2="1">
+                  <stop stop-color="#FEF3C7"/><stop offset=".5" stop-color="#FBBF24"/><stop offset="1" stop-color="#B45309"/>
+                </linearGradient>
               </defs>
-              <path class="beam" d="M58 66 L101 36 Q108 63 91 89 Z" fill="url(#lanternGlow)"/>
-              <circle cx="49" cy="30" r="10" fill="#DDD6FE"/>
-              <path d="M39 42 Q49 37 59 43 L64 69 L38 69 Z" fill="#8B5CF6"/>
-              <path d="M42 67 L39 94 M59 67 L64 93" stroke="#C4B5FD" stroke-width="6" stroke-linecap="round"/>
-              <path d="M42 47 L31 62 M58 47 L69 59" stroke="#C4B5FD" stroke-width="5" stroke-linecap="round"/>
-              <g class="beam"><path d="M70 58 L78 54 L82 64 L73 68 Z" fill="#FDE68A" stroke="#F5D17A" stroke-width="2"/><circle cx="78" cy="61" r="10" fill="url(#lanternGlow)"/></g>
-              <path d="M34 97 H47 M60 97 H73" stroke="#E9D5FF" stroke-width="5" stroke-linecap="round"/>
+              <ellipse cx="80" cy="164" rx="37" ry="8" fill="#7C3AED" opacity=".22"/>
+              <g class="character">
+                <circle cx="111" cy="91" r="43" fill="url(#olliGlow)" opacity=".62"/>
+                <path d="M80 89 L151 58 Q157 91 136 119 Z" fill="url(#olliGlow)" opacity=".56"/>
+                <!-- legs and boots -->
+                <path d="M68 120 L62 146 M96 120 L103 145" fill="none" stroke="#C4B5FD" stroke-width="10" stroke-linecap="round"/>
+                <path d="M61 145 L51 157 Q49 161 55 162 L72 162 Q77 161 74 156 L68 146 Z" fill="url(#olliBody)" stroke="#E9D5FF" stroke-width="1.5"/>
+                <path d="M102 144 L103 157 Q104 162 110 162 L126 162 Q131 160 127 156 L111 145 Z" fill="url(#olliBody)" stroke="#E9D5FF" stroke-width="1.5"/>
+                <!-- torso with shaded side and chest highlight -->
+                <path d="M60 67 Q78 56 99 67 L108 119 Q81 132 55 119 Z" fill="url(#olliClothes)" stroke="#DDD6FE" stroke-width="2"/>
+                <path d="M60 69 Q68 65 75 64 L73 123 L55 119 Z" fill="#DDD6FE" opacity=".24"/>
+                <path d="M78 77 Q85 72 94 77 L97 101 Q86 107 75 101 Z" fill="#A78BFA" opacity=".72"/>
+                <circle cx="86" cy="89" r="4" fill="#67E8F9" opacity=".9"/>
+                <!-- head -->
+                <path d="M66 39 Q68 20 85 20 Q105 21 106 42 L103 61 Q98 72 84 72 Q69 69 65 57 Z" fill="url(#olliFace)" stroke="#F5D0FE" stroke-width="2"/>
+                <path d="M66 42 Q68 20 85 20 Q100 20 105 36 Q92 31 82 35 Q73 37 66 46 Z" fill="#8B5CF6"/>
+                <path d="M68 42 Q73 28 85 27" fill="none" stroke="#E9D5FF" stroke-width="3" stroke-linecap="round" opacity=".85"/>
+                <ellipse cx="77" cy="48" rx="2.2" ry="3" fill="#312E81"/>
+                <ellipse cx="94" cy="48" rx="2.2" ry="3" fill="#312E81"/>
+                <path d="M79 58 Q86 64 94 57" fill="none" stroke="#A855F7" stroke-width="2" stroke-linecap="round"/>
+                <!-- arms -->
+                <path d="M61 76 L47 97 L57 105 L70 88" fill="url(#olliBody)" stroke="#DDD6FE" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M102 76 L117 88" fill="none" stroke="#C4B5FD" stroke-width="11" stroke-linecap="round"/>
+                <circle cx="119" cy="89" r="7" fill="url(#olliFace)" stroke="#DDD6FE" stroke-width="1.5"/>
+                <!-- lantern and beam rotate toward pointer -->
+                <g id="olli-lantern" transform="rotate(0 119 89)">
+                  <path id="olli-beam" d="M120 85 L158 63 Q161 90 143 112 Z" fill="url(#olliGlow)"/>
+                  <path d="M117 84 Q119 79 124 82 L131 91 L125 99 L118 94 Z" fill="url(#olliMetal)" stroke="#FEF3C7" stroke-width="2"/>
+                  <path d="M119 83 L124 81 L128 86" fill="none" stroke="#FFF7CC" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="124" cy="90" r="5" fill="#FFF7CC" opacity=".95"/>
+                </g>
+              </g>
             </svg>
           </div>
         `;
         doc.body.appendChild(wrap);
 
         const light = doc.getElementById('olli-pointer-light');
+        const walker = doc.getElementById('olli-walker');
+        const lantern = doc.getElementById('olli-lantern');
+        const reduceMotion = window.parent.matchMedia('(prefers-reduced-motion: reduce)');
+
         doc.addEventListener('pointermove', (event) => {
-          if (event.pointerType === 'touch' || window.parent.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-          light.style.left = event.clientX + 'px';
-          light.style.top = event.clientY + 'px';
-          light.style.opacity = '1';
+          if (event.pointerType === 'touch') return;
+          light.style.left = `${event.clientX}px`;
+          light.style.top = `${event.clientY}px`;
+          light.style.opacity = reduceMotion.matches ? '.72' : '1';
+
+          // Direciona a lanterna do mascote ao ponto atual do cursor.
+          const box = walker.getBoundingClientRect();
+          const scaleX = box.width / 160;
+          const scaleY = box.height / 180;
+          const handX = box.left + 119 * scaleX;
+          const handY = box.top + 89 * scaleY;
+          const angle = Math.atan2(event.clientY - handY, event.clientX - handX) * 180 / Math.PI;
+          lantern.setAttribute('transform', `rotate(${angle} 119 89)`);
         }, { passive: true });
         doc.addEventListener('pointerleave', () => { light.style.opacity = '0'; }, { passive: true });
       } catch (_) { /* ignore */ }
@@ -168,58 +228,30 @@ COLUNAS = [
 
 DADOS_INICIAIS = [
     {
-        "ID": "ISP-701",
-        "Status Contato": "Qualificado",
-        "Provedor": "Alpha Fibra Telecom",
-        "Responsáveis": "Carlos Silva",
-        "Cargo": "Diretor de Operações",
-        "Localidade": "Chapecó - SC",
-        "Telefone": "(49) 3321-1000",
-        "Email": "diretoria@alphafibra.com.br",
+        "ID": "ISP-701", "Status Contato": "Qualificado", "Provedor": "Alpha Fibra Telecom",
+        "Responsáveis": "Carlos Silva", "Cargo": "Diretor de Operações", "Localidade": "Chapecó - SC",
+        "Telefone": "(49) 3321-1000", "Email": "diretoria@alphafibra.com.br",
         "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região",
-        "Produto Olli": "Olli Smart Home",
-        "CNPJ": "31.862.534/0001-30",
-        "Clientes Estimados": 12000,
-        "Ticket Médio (R$)": 89.90,
-        "Data Cadastro": "2026-01-10",
-        "Score Conectividade": 88,
-        "Origem Lead": "Outbound LinkedIn",
+        "Produto Olli": "Olli Smart Home", "CNPJ": "31.862.534/0001-30",
+        "Clientes Estimados": 12000, "Ticket Médio (R$)": 89.90, "Data Cadastro": "2026-01-10",
+        "Score Conectividade": 88, "Origem Lead": "Outbound LinkedIn",
     },
     {
-        "ID": "ISP-702",
-        "Status Contato": "Não Chamado",
-        "Provedor": "Beta Net Telecom",
-        "Responsáveis": "Rodrigo Ramos",
-        "Cargo": "CEO",
-        "Localidade": "Blumenau - SC",
-        "Telefone": "(47) 3211-5500",
-        "Email": "rodrigo@betanet.net.br",
-        "Situação de Mercado": "Churn alto detectado em relatórios ANATEL",
-        "Produto Olli": "Olli Habita",
-        "CNPJ": "14.552.112/0001-99",
-        "Clientes Estimados": 7500,
-        "Ticket Médio (R$)": 79.90,
-        "Data Cadastro": "2026-02-15",
-        "Score Conectividade": 45,
-        "Origem Lead": "Mapeamento ANATEL",
+        "ID": "ISP-702", "Status Contato": "Não Chamado", "Provedor": "Beta Net Telecom",
+        "Responsáveis": "Rodrigo Ramos", "Cargo": "CEO", "Localidade": "Blumenau - SC",
+        "Telefone": "(47) 3211-5500", "Email": "rodrigo@betanet.net.br",
+        "Situação de Mercado": "Churn alto detectado em relatórios ANATEL", "Produto Olli": "Olli Habita",
+        "CNPJ": "14.552.112/0001-99", "Clientes Estimados": 7500, "Ticket Médio (R$)": 79.90,
+        "Data Cadastro": "2026-02-15", "Score Conectividade": 45, "Origem Lead": "Mapeamento ANATEL",
     },
     {
-        "ID": "ISP-703",
-        "Status Contato": "Agendado (Reunião)",
-        "Provedor": "Wave Conectividade",
-        "Responsáveis": "Juliana Mendes",
-        "Cargo": "Gerente de Marketing",
-        "Localidade": "Maringá - PR",
-        "Telefone": "(44) 99881-2233",
-        "Email": "juliana@waveconect.com.br",
+        "ID": "ISP-703", "Status Contato": "Agendado (Reunião)", "Provedor": "Wave Conectividade",
+        "Responsáveis": "Juliana Mendes", "Cargo": "Gerente de Marketing", "Localidade": "Maringá - PR",
+        "Telefone": "(44) 99881-2233", "Email": "juliana@waveconect.com.br",
         "Situação de Mercado": "Estagnação de vendas / Sem serviços de valor agregado (SVA)",
-        "Produto Olli": "Olli Smart Home",
-        "CNPJ": "45.123.789/0001-02",
-        "Clientes Estimados": 24000,
-        "Ticket Médio (R$)": 110.00,
-        "Data Cadastro": "2026-03-22",
-        "Score Conectividade": 92,
-        "Origem Lead": "Inbound - Evento IXC",
+        "Produto Olli": "Olli Smart Home", "CNPJ": "45.123.789/0001-02",
+        "Clientes Estimados": 24000, "Ticket Médio (R$)": 110.00, "Data Cadastro": "2026-03-22",
+        "Score Conectividade": 92, "Origem Lead": "Inbound - Evento IXC",
     },
 ]
 
@@ -236,11 +268,11 @@ def normalizar_df(df: pd.DataFrame) -> pd.DataFrame:
     if df is None:
         return pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS)
 
+    df = df.copy()
     for coluna in COLUNAS:
         if coluna not in df.columns:
             df[coluna] = 0 if coluna in ("Clientes Estimados", "Score Conectividade") else "Não Informado"
 
-    df = df.copy()
     df["Clientes Estimados"] = pd.to_numeric(df["Clientes Estimados"], errors="coerce").fillna(0)
     df["Score Conectividade"] = pd.to_numeric(df["Score Conectividade"], errors="coerce").fillna(0).clip(0, 100)
     return df
@@ -268,8 +300,7 @@ def carregar_dados() -> pd.DataFrame:
 
 def salvar_dados(df: pd.DataFrame) -> bool:
     try:
-        dados = normalizar_df(df)
-        dados.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
+        normalizar_df(df).to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
         carregar_dados.clear()
         return True
     except OSError as erro:
@@ -282,7 +313,6 @@ def gerar_abordagem_ia(provedor: str, responsavel: str, dor: str, produto: str) 
     responsavel = responsavel or "o responsável"
     dor = dor or "a dor atual do mercado"
     produto = produto or "a solução Olli"
-
     return (
         f"Olá {responsavel}, percebi o posicionamento da {provedor} na região e o cenário atual "
         f"envolvendo '{dor}'. O {produto} pode ajudar a fortalecer a percepção de valor, reduzir churn "
@@ -297,16 +327,14 @@ def mostrar_estado_vazio() -> None:
         <div class="empty-state">
           <svg width="190" height="125" viewBox="0 0 190 125" role="img" aria-label="Pessoa caminhando com uma lanterna">
             <defs>
-              <radialGradient id="emptyGlow">
-                <stop stop-color="#FDE68A" stop-opacity=".65"/>
-                <stop offset="1" stop-color="#A855F7" stop-opacity="0"/>
-              </radialGradient>
+              <radialGradient id="emptyGlow"><stop stop-color="#FDE68A" stop-opacity=".65"/><stop offset="1" stop-color="#A855F7" stop-opacity="0"/></radialGradient>
+              <linearGradient id="emptyBody" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F5D0FE"/><stop offset="1" stop-color="#7C3AED"/></linearGradient>
             </defs>
             <ellipse cx="96" cy="111" rx="72" ry="8" fill="#7C3AED" opacity=".15"/>
-            <g class="walker">
+            <g class="walker" style="filter:drop-shadow(0 8px 8px rgba(168,85,247,.35))">
               <path d="M101 68 L154 42 Q165 62 151 82 Z" fill="url(#emptyGlow)"/>
-              <circle cx="86" cy="37" r="10" fill="#DDD6FE"/>
-              <path d="M77 50 Q87 46 96 51 L100 78 L75 78 Z" fill="#8B5CF6"/>
+              <circle cx="86" cy="37" r="10" fill="#F5D0FE" stroke="#FFF" stroke-opacity=".5"/>
+              <path d="M77 50 Q87 46 96 51 L100 78 L75 78 Z" fill="url(#emptyBody)" stroke="#DDD6FE" stroke-width="1.2"/>
               <path d="M79 76 L75 101 M96 76 L102 100" stroke="#C4B5FD" stroke-width="6" stroke-linecap="round"/>
               <path d="M79 54 L69 70 M94 54 L106 65" stroke="#C4B5FD" stroke-width="5" stroke-linecap="round"/>
               <path d="M105 61 L113 57 L117 67 L108 71 Z" fill="#FDE68A" stroke="#F5D17A" stroke-width="2"/>
@@ -328,9 +356,8 @@ st.session_state.setdefault("termo_busca_provedor", "")
 st.session_state.setdefault("confirmar_exclusao", None)
 st.session_state.setdefault("scroll_resultados", False)
 
-# Carrega e padroniza dados
 try:
-    df = carregar_dados().copy()
+    df = normalizar_df(carregar_dados().copy())
 except Exception:
     df = normalizar_df(pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS))
 
@@ -339,31 +366,19 @@ st.markdown('<div class="subtitle">SDR Intelligence Matrix &amp; Real-time Netwo
 
 k1, k2, k3 = st.columns(3)
 with k1:
-    st.markdown(
-        f'<div class="kpi-container"><div class="kpi-title">Total Provedores</div><div class="kpi-value">{len(df)}</div></div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown(f'<div class="kpi-container"><div class="kpi-title">Total Provedores</div><div class="kpi-value">{len(df)}</div></div>', unsafe_allow_html=True)
 with k2:
-    st.markdown(
-        f'<div class="kpi-container" style="border-left-color:#A855F7"><div class="kpi-title">Clientes Estimados</div><div class="kpi-value">{int(df["Clientes Estimados"].sum()):,}</div></div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown(f'<div class="kpi-container" style="border-left-color:#A855F7"><div class="kpi-title">Clientes Estimados</div><div class="kpi-value">{int(df["Clientes Estimados"].sum()):,}</div></div>', unsafe_allow_html=True)
 with k3:
     media = int(df["Score Conectividade"].mean()) if not df.empty else 0
-    st.markdown(
-        f'<div class="kpi-container" style="border-left-color:#22D3EE"><div class="kpi-title">Score Médio</div><div class="kpi-value">{media}%</div></div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown(f'<div class="kpi-container" style="border-left-color:#22D3EE"><div class="kpi-title">Score Médio</div><div class="kpi-value">{media}%</div></div>', unsafe_allow_html=True)
 
 st.write("---")
 st.markdown("### 🔎 Busca de provedores")
 with st.form("form_busca_provedor", clear_on_submit=False):
     campo_busca, botao_busca = st.columns([5, 1])
     with campo_busca:
-        termo_digitado = st.text_input(
-            "Busca", placeholder="Nome do provedor ou cidade...", label_visibility="collapsed",
-            key="campo_busca_provedor",
-        )
+        termo_digitado = st.text_input("Busca", placeholder="Nome do provedor ou cidade...", label_visibility="collapsed", key="campo_busca_provedor")
     with botao_busca:
         buscar = st.form_submit_button("🔍 Procurar")
 
@@ -392,17 +407,14 @@ else:
 
 st.markdown('<div id="scroll-resultados"></div>', unsafe_allow_html=True)
 if st.session_state.scroll_resultados:
-    components.html(
-        """
+    components.html("""
         <script>
           setTimeout(() => {
             const el = window.parent.document.getElementById('scroll-resultados');
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 120);
         </script>
-        """,
-        height=0,
-    )
+        """, height=0)
     st.session_state.scroll_resultados = False
 
 st.markdown("### 🔮 Provedores")
@@ -419,7 +431,6 @@ else:
         score = max(0, min(100, score))
 
         card_col, action_col = st.columns([4, 1])
-
         with card_col:
             provedor = escape(provedor_raw)
             status = escape(str(row.get("Status Contato", "Não informado")))
@@ -428,8 +439,7 @@ else:
             cargo = escape(str(row.get("Cargo", "Não informado")))
             produto = escape(produto_raw)
             dor = escape(dor_raw)
-            st.markdown(
-                f"""
+            st.markdown(f"""
                 <div class="hologram-card">
                   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
                     <span style="color:#22D3EE;font-size:1.25rem;font-weight:750">{provedor}</span>
@@ -447,18 +457,13 @@ else:
                     <div class="score-track"><div class="score-fill" style="width:{score}%"></div></div>
                   </div>
                 </div>
-                """,
-                unsafe_allow_html=True,
-            )
+                """, unsafe_allow_html=True)
 
         with action_col:
             st.write("")
             if st.button("✨ Gerar abordagem", key=f"ia_{lead_id}"):
                 sugestao = gerar_abordagem_ia(provedor_raw, responsavel_raw, dor_raw, produto_raw)
-                st.markdown(
-                    f'<div class="ai-response"><b>Abordagem sugerida</b><br><br>{escape(sugestao)}</div>',
-                    unsafe_allow_html=True,
-                )
+                st.markdown(f'<div class="ai-response"><b>Abordagem sugerida</b><br><br>{escape(sugestao)}</div>', unsafe_allow_html=True)
                 registrar_log(f"Abordagem gerada para {provedor_raw}", "AI_ENGINE")
 
             if st.button("🗑️ Excluir lead", key=f"excluir_{lead_id}"):
