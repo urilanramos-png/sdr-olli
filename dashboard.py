@@ -1,3 +1,7 @@
+# Dica: crie .streamlit/config.toml com [theme] base = "dark" e primaryColor = "#A855F7"
+# para que os widgets nativos do Streamlit acompanhem a paleta do Olli Hub.
+from __future__ import annotations
+
 import os
 from datetime import datetime
 from html import escape
@@ -20,390 +24,458 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown(
-    """
-    <style>
-        :root { color-scheme: dark; }
-        html, body, [data-testid="stAppViewContainer"], .main {
-            background: linear-gradient(180deg, #0B071E 0%, #120B2D 100%);
-            color: #E2E8F0 !important;
-            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        }
-        [data-testid="stSidebar"] { background: #070414 !important; }
-        h1, h2, h3, h4 { letter-spacing: -0.02em; }
-        .cyber-title {
-            background: linear-gradient(135deg, #C084FC 0%, #7C3AED 52%, #22D3EE 100%);
-            -webkit-background-clip: text; background-clip: text; color: transparent;
-            font-size: clamp(2rem, 4vw, 2.7rem); font-weight: 800; margin-bottom: .3rem;
-        }
-        .subtitle { color: #94A3B8; font-size: 1.05rem; margin-bottom: 1.2rem; }
-        div[data-testid="stTextInput"] input {
-            background: rgba(15, 10, 36, .8) !important; color: #E2E8F0 !important;
-            border: 1px solid rgba(168, 85, 247, .45) !important; border-radius: 12px !important;
-            min-height: 44px;
-        }
-        div.stButton > button, div[data-testid="stFormSubmitButton"] button {
-            width: 100%; color: #fff !important; border: 1px solid rgba(255,255,255,.12) !important;
-            border-radius: 12px !important; font-weight: 650 !important;
-            background: linear-gradient(135deg, #6D28D9, #A855F7) !important;
-            transition: transform .18s ease, box-shadow .18s ease !important;
-        }
-        div.stButton > button:hover, div[data-testid="stFormSubmitButton"] button:hover {
-            transform: translateY(-2px); box-shadow: 0 0 20px rgba(168,85,247,.4) !important;
-        }
-        .kpi-container {
-            background: linear-gradient(145deg, rgba(26,18,70,.55), rgba(11,7,30,.88));
-            border-left: 4px solid #7C3AED; border-radius: 15px; padding: 18px; min-height: 105px;
-        }
-        .kpi-title { color:#94A3B8; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; }
-        .kpi-value { color:#fff; font-size:1.9rem; font-weight:750; margin-top:7px; }
-        .hologram-card {
-            background: rgba(20,14,56,.48); border: 1px solid rgba(168,85,247,.2);
-            border-radius: 18px; padding: 20px; margin-bottom: 12px;
-            box-shadow: 0 10px 30px rgba(124,58,237,.07); animation: card-enter .35s ease both;
-        }
-        @keyframes card-enter { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-        .score-track { background:rgba(255,255,255,.08); border-radius:8px; height:9px; margin-top:7px; overflow:hidden; }
-        .score-fill { height:100%; border-radius:8px; background:linear-gradient(90deg,#7C3AED,#22D3EE); }
-        .ai-response {
-            background:rgba(6,182,212,.06); border:1px dashed rgba(6,182,212,.35);
-            border-radius:13px; padding:16px; color:#A5F3FC; margin:10px 0 16px; line-height:1.65;
-        }
-        .empty-state {
-            position:relative; overflow:hidden; text-align:center; padding:30px 18px 22px;
-            margin:18px 0; border:1px solid rgba(168,85,247,.2); border-radius:20px;
-            background:radial-gradient(ellipse at 50% 100%,rgba(124,58,237,.18),transparent 65%),rgba(18,11,45,.55);
-        }
-        .empty-title { color:#E9D5FF; font-size:1.3rem; font-weight:750; margin:8px 0 4px; }
-        .empty-copy { color:#A1A1AA; font-size:.95rem; }
-        .walker { transform-origin:center; animation: walk-across 8s ease-in-out infinite alternate; }
-        @keyframes walk-across { from { transform:translateX(-105px); } to { transform:translateX(105px); } }
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+CSS_GLOBAL = """
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+:root {
+  color-scheme: dark;
+  --bg-1: #0B071E; --bg-2: #120B2D;
+  --violet: #7C3AED; --violet-2: #A855F7; --violet-3: #C084FC;
+  --cyan: #22D3EE; --green: #34D399;
+  --text: #E2E8F0; --muted: #94A3B8; --faint: #8B98B2;
+  --glass: rgba(22, 15, 60, .55); --line: rgba(168, 85, 247, .28);
+  --display: "Chakra Petch", Inter, system-ui, sans-serif;
+}
+html, body, [data-testid="stAppViewContainer"], .main {
+  background:
+    linear-gradient(rgba(168,85,247,.045) 1px, transparent 1px) 0 0 / 56px 56px,
+    linear-gradient(90deg, rgba(34,211,238,.035) 1px, transparent 1px) 0 0 / 56px 56px,
+    radial-gradient(1000px 520px at 8% -6%, rgba(124,58,237,.32), transparent 60%),
+    radial-gradient(820px 460px at 100% 0%, rgba(34,211,238,.13), transparent 58%),
+    linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  background-attachment: fixed;
+  color: var(--text) !important;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+header[data-testid="stHeader"] { background: transparent; }
+footer { visibility: hidden; }
+hr { border-color: var(--line) !important; }
+::selection { background: rgba(168, 85, 247, .45); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #07041A; }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--violet), var(--cyan)); border-radius: 8px; }
+h1, h2, h3, h4 { font-family: var(--display); letter-spacing: -.01em; color: #F5F3FF !important; }
+h3 { text-shadow: 0 0 18px rgba(168, 85, 247, .35); }
+[data-testid="stWidgetLabel"] p, [data-testid="stCaptionContainer"], label { color: var(--muted) !important; }
+[data-testid="stSidebar"] { background: linear-gradient(180deg, #070414 0%, #0D0826 100%) !important; border-right: 1px solid var(--line); }
+.sidebar-brand { font-family: var(--display); font-size: 1.2rem; font-weight: 700; color: #F5F3FF; text-shadow: 0 0 16px rgba(168,85,247,.8); margin: 4px 0 2px; }
+.sidebar-brand span { color: var(--cyan); text-shadow: 0 0 16px rgba(34,211,238,.7); }
+.cyber-title {
+  font-family: var(--display); font-size: clamp(2rem, 4vw, 2.9rem); font-weight: 700; line-height: 1.1; margin-bottom: .35rem;
+  background: linear-gradient(110deg, #C084FC 0%, #7C3AED 30%, #22D3EE 62%, #C084FC 100%); background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 18px rgba(168,85,247,.45)); animation: title-flow 10s linear infinite;
+}
+@keyframes title-flow { to { background-position: -220% 0; } }
+.subtitle { color: var(--muted); font-size: 1.02rem; margin-bottom: 1.3rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.live { display: inline-flex; align-items: center; gap: 8px; padding: 3px 11px; border: 1px solid rgba(52,211,153,.38); border-radius: 999px; background: rgba(52,211,153,.08); color: #6EE7B7; font-size: .78rem; font-weight: 600; }
+.live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 1.8s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .35; transform: scale(.7); } }
+div[data-testid="stTextInput"] input, div[data-baseweb="select"] > div {
+  background: rgba(15, 10, 36, .8) !important; color: var(--text) !important;
+  border: 1px solid rgba(168, 85, 247, .45) !important; border-radius: 12px !important; min-height: 44px;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+div[data-testid="stTextInput"] input:focus, div[data-baseweb="select"] > div:focus-within {
+  border-color: var(--cyan) !important; box-shadow: 0 0 0 3px rgba(34,211,238,.16), 0 0 18px rgba(34,211,238,.25) !important;
+}
+div[data-baseweb="popover"] ul, ul[role="listbox"] { background: #120B2D !important; color: var(--text) !important; border: 1px solid var(--line); }
+li[role="option"]:hover { background: rgba(124, 58, 237, .32) !important; }
+span[data-baseweb="tag"] { background: rgba(124, 58, 237, .38) !important; color: #F5F3FF !important; border-radius: 8px !important; }
+:is(div.stButton, div[data-testid="stFormSubmitButton"], div[data-testid="stDownloadButton"]) button {
+  position: relative; overflow: hidden; width: 100%; min-height: 44px; color: #fff !important;
+  border: 1px solid rgba(255,255,255,.14) !important; border-radius: 12px !important; font-weight: 650 !important;
+  background: linear-gradient(135deg, #6D28D9, #A855F7) !important;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease !important;
+}
+:is(div.stButton, div[data-testid="stFormSubmitButton"], div[data-testid="stDownloadButton"]) button::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.28) 50%, transparent 65%);
+  transform: translateX(-120%); transition: transform .6s ease;
+}
+:is(div.stButton, div[data-testid="stFormSubmitButton"], div[data-testid="stDownloadButton"]) button:hover {
+  transform: translateY(-2px); box-shadow: 0 0 24px rgba(168,85,247,.5), 0 0 0 1px rgba(34,211,238,.45) !important;
+}
+:is(div.stButton, div[data-testid="stFormSubmitButton"], div[data-testid="stDownloadButton"]) button:hover::after { transform: translateX(120%); }
+button:disabled { opacity: .45 !important; filter: saturate(.4); }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--cyan) !important; outline-offset: 2px; }
+[class*="st-key-ia_"] button { background: linear-gradient(135deg, #0891B2, #7C3AED) !important; }
+[class*="st-key-excluir_"] button { background: linear-gradient(135deg, #9F1239, #E11D48) !important; }
+[class*="st-key-limpar_busca"] button { background: transparent !important; border: 1px solid var(--line) !important; }
+.kpi-container {
+  position: relative; overflow: hidden; min-height: 108px; padding: 18px; border: 1px solid var(--line); border-radius: 16px;
+  background: var(--glass); backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 30px rgba(0,0,0,.25); animation: card-enter .45s ease both;
+}
+.kpi-container::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 2px; background: linear-gradient(90deg, var(--accent, #7C3AED), transparent); box-shadow: 0 0 14px var(--accent, #7C3AED); }
+.kpi-title { color: var(--muted); font-size: .82rem; font-weight: 600; letter-spacing: .06em; }
+.kpi-value { margin-top: 6px; color: #fff; font-family: var(--display); font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; text-shadow: 0 0 22px var(--accent, #7C3AED); }
+.hologram-card {
+  position: relative; margin-bottom: 12px; padding: 20px; border: 1px solid var(--line); border-radius: 18px;
+  background: linear-gradient(160deg, rgba(30,20,78,.55), rgba(12,8,34,.72)); backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 14px 36px rgba(0,0,0,.3);
+  animation: card-enter .45s ease both; transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+.hologram-card:hover { transform: translateY(-3px); border-color: rgba(34,211,238,.55); box-shadow: 0 0 0 1px rgba(34,211,238,.22), 0 18px 44px rgba(124,58,237,.28), 0 0 34px rgba(34,211,238,.12); }
+.hologram-card::before, .hologram-card::after { content: ""; position: absolute; width: 14px; height: 14px; pointer-events: none; transition: width .25s ease, height .25s ease; }
+.hologram-card::before { top: -1px; left: -1px; border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan); border-top-left-radius: 18px; }
+.hologram-card::after { right: -1px; bottom: -1px; border-right: 2px solid var(--violet-2); border-bottom: 2px solid var(--violet-2); border-bottom-right-radius: 18px; }
+.hologram-card:hover::before, .hologram-card:hover::after { width: 28px; height: 28px; }
+@keyframes card-enter { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.card-title { color: var(--cyan); font-family: var(--display); font-size: 1.3rem; font-weight: 700; text-shadow: 0 0 18px rgba(34,211,238,.4); }
+.pill { padding: 4px 12px; border: 1px solid currentColor; border-radius: 999px; font-size: .78rem; font-weight: 600; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-top: 16px; }
+.meta-label { display: block; margin-bottom: 2px; color: var(--faint); font-size: .74rem; letter-spacing: .04em; }
+b.accent { color: var(--violet-3); }
+.pain { margin-top: 15px; padding: 10px 12px; border-left: 3px solid var(--violet); border-radius: 8px; background: rgba(255,255,255,.03); color: #CBD5E1; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.chip { padding: 4px 11px; border: 1px solid rgba(168,85,247,.28); border-radius: 999px; background: rgba(124,58,237,.14); color: #DDD6FE; font-size: .78rem; text-decoration: none !important; transition: border-color .2s ease, box-shadow .2s ease; }
+a.chip:hover { border-color: var(--cyan); color: #fff; box-shadow: 0 0 14px rgba(34,211,238,.35); }
+.score-label { margin-top: 14px; color: var(--muted); font-size: .78rem; }
+.score-track { height: 9px; margin-top: 7px; overflow: hidden; border-radius: 8px; background: rgba(255,255,255,.08); }
+.score-fill { height: 100%; border-radius: 8px; transform-origin: left; background: linear-gradient(90deg, var(--c1, #7C3AED), var(--c2, #22D3EE)); box-shadow: 0 0 12px var(--c2, #22D3EE); animation: fill-in 1s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes fill-in { from { transform: scaleX(0); } }
+.ai-response { margin: 2px 0 16px; padding: 16px; border: 1px dashed rgba(6,182,212,.4); border-radius: 14px; background: linear-gradient(135deg, rgba(6,182,212,.09), rgba(124,58,237,.08)); color: #A5F3FC; line-height: 1.65; animation: card-enter .4s ease both; }
+.ai-tag { display: inline-block; margin-bottom: 8px; padding: 2px 9px; border-radius: 6px; background: linear-gradient(90deg, var(--cyan), var(--violet-3)); color: #0B071E; font-size: .72rem; font-weight: 800; }
+.empty-state {
+  position: relative; overflow: hidden; text-align: center; padding: 30px 18px 22px; margin: 18px 0;
+  border: 1px solid var(--line); border-radius: 20px;
+  background: radial-gradient(ellipse at 50% 100%, rgba(124,58,237,.18), transparent 65%), rgba(18,11,45,.55);
+}
+.empty-title { color: #E9D5FF; font-family: var(--display); font-size: 1.3rem; font-weight: 700; margin: 8px 0 4px; }
+.empty-copy { color: #A1A1AA; font-size: .95rem; }
+.walker { transform-origin: center; animation: walk-across 8s ease-in-out infinite alternate; }
+@keyframes walk-across { from { transform: translateX(-105px); } to { transform: translateX(105px); } }
+@media (max-width: 640px) { .hologram-card { padding: 16px; } .kpi-value { font-size: 1.6rem; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+"""
+st.markdown("<style>" + CSS_GLOBAL + "</style>", unsafe_allow_html=True)
 
 # Mascote em SVG sombreado: segue o cursor com atraso e velocidade limitados,
 # anima os passos apenas enquanto caminha e mira com a lanterna quando alcança.
 # Um rastro roxo com cintilação acompanha movimentos rápidos do mouse.
-components.html(
-    """
-    <script>
-    (() => {
-      try {
-        const win = window.parent;
-        const doc = win.document;
-        if (win.__olliEffectsCleanup) win.__olliEffectsCleanup();
-        doc.getElementById('olli-effects')?.remove();
-        doc.getElementById('olli-effects-style')?.remove();
+JS_EFEITOS_OLLI = """
+<script>
+(() => {
+  try {
+    const win = window.parent;
+    const doc = win.document;
+    if (win.__olliEffectsCleanup) win.__olliEffectsCleanup();
+    doc.getElementById('olli-effects')?.remove();
+    doc.getElementById('olli-effects-style')?.remove();
 
-        const style = doc.createElement('style');
-        style.id = 'olli-effects-style';
-        style.textContent = `
-          #olli-effects { position: fixed; inset: 0; z-index: 2147483644; pointer-events: none; overflow: visible; }
-          #olli-star-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-          #olli-pointer-glow {
-            position: fixed; width: 34px; height: 34px; left: 0; top: 0; opacity: 0;
-            transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none;
-            background: radial-gradient(circle, rgba(255,255,255,.96) 0%, rgba(216,180,254,.9) 15%, rgba(168,85,247,.62) 38%, rgba(124,58,237,.22) 63%, transparent 80%);
-            filter: blur(2px) drop-shadow(0 0 9px rgba(168,85,247,.9));
-            transition: opacity .16s ease; will-change: left, top, opacity;
-          }
-          #olli-walker {
-            position: fixed; left: 40px; top: 40px; width: 66px; height: 82px;
-            opacity: .98; pointer-events: none; will-change: left, top;
-            filter: drop-shadow(0 5px 8px rgba(91,33,182,.42));
-          }
-          #olli-walker svg { display: block; width: 100%; height: 100%; overflow: visible; }
-          #olli-sprite { transform-box: view-box; transform-origin: 60px 75px; }
-          #olli-sprite.walking #olli-leg-a { animation: olli-step-a .42s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 49px 103px; }
-          #olli-sprite.walking #olli-leg-b { animation: olli-step-b .42s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 69px 103px; }
-          #olli-sprite.walking #olli-arm-free { animation: olli-arm-swing .42s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 43px 65px; }
-          #olli-sprite.walking { animation: olli-body-bob .42s ease-in-out infinite alternate; }
-          #olli-lantern { transform-box: view-box; transition: transform .18s ease-out; }
-          #olli-lantern-beam { opacity: .84; filter: drop-shadow(0 0 6px rgba(192,132,252,.95)); }
-          @keyframes olli-step-a { from { transform: rotate(-20deg); } to { transform: rotate(20deg); } }
-          @keyframes olli-step-b { from { transform: rotate(18deg); } to { transform: rotate(-20deg); } }
-          @keyframes olli-arm-swing { from { transform: rotate(12deg); } to { transform: rotate(-12deg); } }
-          @keyframes olli-body-bob { from { translate: 0 0; } to { translate: 0 -1.5px; } }
-          @media (prefers-reduced-motion: reduce) {
-            #olli-sprite.walking, #olli-sprite.walking * { animation: none !important; }
-            #olli-lantern { transition: none !important; }
-          }
-        `;
-        doc.head.appendChild(style);
-
-        const wrap = doc.createElement('div');
-        wrap.id = 'olli-effects';
-        wrap.innerHTML = `
-          <canvas id="olli-star-canvas" aria-hidden="true"></canvas>
-          <div id="olli-pointer-glow" aria-hidden="true"></div>
-          <div id="olli-walker" aria-hidden="true">
-            <svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" role="presentation">
-              <defs>
-                <radialGradient id="olli-face" cx="32%" cy="24%" r="78%">
-                  <stop stop-color="#FFFDF8"/><stop offset=".62" stop-color="#E9D5FF"/><stop offset="1" stop-color="#A78BFA"/>
-                </radialGradient>
-                <linearGradient id="olli-coat" x1="0" y1="0" x2="1" y2="1">
-                  <stop stop-color="#E9D5FF"/><stop offset=".42" stop-color="#8B5CF6"/><stop offset="1" stop-color="#32145F"/>
-                </linearGradient>
-                <linearGradient id="olli-sleeve" x1="0" y1="0" x2="1" y2="1">
-                  <stop stop-color="#E9D5FF"/><stop offset="1" stop-color="#6D28D9"/>
-                </linearGradient>
-                <linearGradient id="olli-boot" x1="0" y1="0" x2="0" y2="1">
-                  <stop stop-color="#C4B5FD"/><stop offset="1" stop-color="#3B1A72"/>
-                </linearGradient>
-                <radialGradient id="olli-lamp-glow">
-                  <stop stop-color="#FFF7CC" stop-opacity=".98"/><stop offset=".42" stop-color="#FDE68A" stop-opacity=".6"/><stop offset="1" stop-color="#A855F7" stop-opacity="0"/>
-                </radialGradient>
-              </defs>
-              <ellipse cx="60" cy="132" rx="25" ry="4" fill="#8B5CF6" opacity=".22"/>
-              <g id="olli-sprite">
-                <!-- legs, articulated boots and coat -->
-                <path id="olli-leg-a" d="M49 103 L45 119" stroke="#BBA6F5" stroke-width="7" stroke-linecap="round"/>
-                <path id="olli-leg-b" d="M69 103 L74 119" stroke="#D8CCFA" stroke-width="7" stroke-linecap="round"/>
-                <path d="M45 117 Q39 120 38 126 Q46 129 55 126 L53 120 Z" fill="url(#olli-boot)" stroke="#D8B4FE" stroke-width=".8"/>
-                <path d="M73 117 Q71 123 75 127 Q84 129 90 125 L84 120 Z" fill="url(#olli-boot)" stroke="#D8B4FE" stroke-width=".8"/>
-                <path d="M42 57 Q59 48 76 57 L81 103 Q61 111 39 103 Z" fill="url(#olli-coat)" stroke="#DDD6FE" stroke-width="1.3"/>
-                <path d="M43 59 Q49 55 54 55 L52 106 L39 103 Z" fill="#F5D0FE" opacity=".2"/>
-                <path d="M57 57 L61 103 M69 58 L74 101" stroke="#E9D5FF" stroke-opacity=".34" stroke-width="1"/>
-                <path d="M54 68 L68 68 L67 87 Q61 91 55 87 Z" fill="#32145F" opacity=".48"/>
-                <circle cx="61" cy="76" r="2.2" fill="#67E8F9"/>
-                <path d="M55 97 Q61 100 68 97" stroke="#F5D0FE" stroke-opacity=".7" stroke-width="1" fill="none"/>
-                <!-- face, hair, subtle highlights and eyes -->
-                <path d="M46 35 Q47 20 60 19 Q76 19 78 35 L75 52 Q71 61 60 61 Q48 59 45 49 Z" fill="url(#olli-face)" stroke="#F5D0FE" stroke-width="1.3"/>
-                <path d="M46 38 Q44 22 58 17 Q73 15 79 31 Q70 27 64 30 Q55 30 47 42 Z" fill="#512583"/>
-                <path d="M49 34 Q54 23 64 22" stroke="#E9D5FF" stroke-opacity=".8" stroke-width="2" fill="none" stroke-linecap="round"/>
-                <ellipse cx="54" cy="41" rx="1.7" ry="2.4" fill="#30204F"/>
-                <ellipse cx="68" cy="40" rx="1.7" ry="2.4" fill="#30204F"/>
-                <circle cx="54.5" cy="40.5" r=".55" fill="#FFF"/><circle cx="68.5" cy="39.5" r=".55" fill="#FFF"/>
-                <path d="M57 49 Q61 52 66 48" stroke="#A855F7" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-                <!-- free arm swings against the walking legs -->
-                <path id="olli-arm-free" d="M43 65 L34 82 L41 86 L51 72" fill="none" stroke="url(#olli-sleeve)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M34 81 L31 86" stroke="#F1EAFE" stroke-width="5" stroke-linecap="round"/>
-                <!-- lantern arm and glowing lantern -->
-                <path d="M75 64 Q83 69 88 77" fill="none" stroke="url(#olli-sleeve)" stroke-width="8" stroke-linecap="round"/>
-                <circle cx="89" cy="78" r="3.4" fill="#F1EAFE" stroke="#C4B5FD" stroke-width=".8"/>
-                <g id="olli-lantern" transform="rotate(0 91 78)">
-                  <path id="olli-lantern-beam" d="M93 75 L119 58 Q121 79 108 98 Z" fill="url(#olli-lamp-glow)"/>
-                  <path d="M88 74 Q89 69 94 71 L99 78 L95 84 L89 81 Z" fill="#FBBF24" stroke="#FFF0B3" stroke-width="1.3"/>
-                  <path d="M89 73 L94 70 L98 74" fill="none" stroke="#FFF9DB" stroke-width="1.2" stroke-linecap="round"/>
-                  <circle cx="95" cy="78" r="2.5" fill="#FFFBEA"/>
-                  <path d="M89 82 L95 85" stroke="#B45309" stroke-width="1"/>
-                </g>
-              </g>
-            </svg>
-          </div>
-        `;
-        doc.body.appendChild(wrap);
-
-        const walker = doc.getElementById('olli-walker');
-        const sprite = doc.getElementById('olli-sprite');
-        const lantern = doc.getElementById('olli-lantern');
-        const glow = doc.getElementById('olli-pointer-glow');
-        const canvas = doc.getElementById('olli-star-canvas');
-        const ctx = canvas.getContext('2d');
-        const reduceMotion = win.matchMedia('(prefers-reduced-motion: reduce)');
-        const width = 66;
-        const height = 82;
-        const cursor = { x: win.innerWidth * .55, y: win.innerHeight * .55 };
-        const position = { x: cursor.x - 125, y: cursor.y - 75 };
-        const velocity = { x: 0, y: 0 };
-        const trail = [];
-        let lastPointer = null;
-        let lastDirection = 1;
-        let lastTime = 0;
-        let visible = false;
-        let cleanup = () => {};
-
-        const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-
-        function resizeCanvas() {
-          const dpr = Math.min(win.devicePixelRatio || 1, 2);
-          canvas.width = Math.round(win.innerWidth * dpr);
-          canvas.height = Math.round(win.innerHeight * dpr);
-          canvas.style.width = `${win.innerWidth}px`;
-          canvas.style.height = `${win.innerHeight}px`;
-          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        }
-        resizeCanvas();
-
-        function onPointerMove(event) {
-          if (event.pointerType === 'touch') return;
-          const now = performance.now();
-          const point = { x: event.clientX, y: event.clientY, t: now };
-          cursor.x = point.x;
-          cursor.y = point.y;
-          visible = true;
-          glow.style.left = `${point.x}px`;
-          glow.style.top = `${point.y}px`;
-          glow.style.opacity = '1';
-
-          if (lastPointer) {
-            const dx = point.x - lastPointer.x;
-            const dy = point.y - lastPointer.y;
-            const distance = Math.hypot(dx, dy);
-            const dt = Math.max(8, now - lastPointer.t);
-            if (Math.abs(dx) > 1) lastDirection = dx > 0 ? 1 : -1;
-            if (distance > 1) {
-              // Keep cursor samples to paint a fading, intermittently twinkling comet tail.
-              const steps = Math.min(7, Math.max(1, Math.ceil(distance / 24)));
-              for (let i = 1; i <= steps; i++) {
-                const ratio = i / steps;
-                trail.push({
-                  x: lastPointer.x + dx * ratio,
-                  y: lastPointer.y + dy * ratio,
-                  t: now,
-                  life: 360 + Math.random() * 260,
-                  size: 1.2 + Math.random() * 2.5,
-                  phase: Math.random() * Math.PI * 2,
-                });
-              }
-              if (distance / dt > .18) sprite.classList.add('walking');
-            }
-          }
-          lastPointer = point;
-        }
-
-        function onPointerLeave() {
-          visible = false;
-          glow.style.opacity = '0';
-        }
-
-        function drawTrail(now) {
-          ctx.clearRect(0, 0, win.innerWidth, win.innerHeight);
-          for (let i = trail.length - 1; i >= 0; i--) {
-            const particle = trail[i];
-            const age = now - particle.t;
-            const progress = age / particle.life;
-            if (progress >= 1) {
-              trail.splice(i, 1);
-              continue;
-            }
-            const flicker = .48 + .52 * Math.abs(Math.sin(now * .025 + particle.phase));
-            const alpha = (1 - progress) * flicker;
-            const radius = particle.size * (1 - progress * .45);
-            const gradient = ctx.createRadialGradient(particle.x, particle.y, 0, particle.x, particle.y, radius * 5);
-            gradient.addColorStop(0, `rgba(255,255,255,${alpha})`);
-            gradient.addColorStop(.24, `rgba(216,180,254,${alpha * .95})`);
-            gradient.addColorStop(.58, `rgba(168,85,247,${alpha * .7})`);
-            gradient.addColorStop(1, 'rgba(124,58,237,0)');
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(particle.x, particle.y, radius * 5, 0, Math.PI * 2);
-            ctx.fill();
-          }
-          if (visible && lastPointer && trail.length) {
-            const newest = trail[trail.length - 1];
-            const dx = cursor.x - newest.x;
-            const dy = cursor.y - newest.y;
-            const length = Math.hypot(dx, dy);
-            if (length > 2) {
-              const tail = ctx.createLinearGradient(cursor.x, cursor.y, cursor.x - dx * 3, cursor.y - dy * 3);
-              tail.addColorStop(0, 'rgba(255,255,255,.88)');
-              tail.addColorStop(.25, 'rgba(192,132,252,.68)');
-              tail.addColorStop(1, 'rgba(124,58,237,0)');
-              ctx.strokeStyle = tail;
-              ctx.lineWidth = 3;
-              ctx.lineCap = 'round';
-              ctx.shadowColor = '#A855F7';
-              ctx.shadowBlur = 12;
-              ctx.beginPath();
-              ctx.moveTo(cursor.x, cursor.y);
-              ctx.lineTo(cursor.x - dx * 3, cursor.y - dy * 3);
-              ctx.stroke();
-              ctx.shadowBlur = 0;
-            }
-          }
-        }
-
-        function animate(now) {
-          const dt = lastTime ? Math.min((now - lastTime) / 1000, .04) : 1 / 60;
-          lastTime = now;
-          drawTrail(now);
-
-          // A moving target stays well ahead of the explorer; when it stops,
-          // the target settles nearby so Olli can approach and aim the lantern.
-          const cursorSpeed = lastPointer && now - lastPointer.t < 90
-            ? Math.hypot(cursor.x - (lastPointer.x || cursor.x), cursor.y - (lastPointer.y || cursor.y)) / Math.max(dt, .016)
-            : 0;
-          const moving = sprite.classList.contains('walking') || cursorSpeed > 35;
-          let targetX;
-          let targetY;
-          if (moving && lastPointer) {
-            const lookAhead = Math.min(110, cursorSpeed * .12);
-            targetX = cursor.x - lastDirection * (88 + lookAhead);
-            targetY = cursor.y + 24;
-          } else {
-            targetX = cursor.x - lastDirection * 62;
-            targetY = cursor.y + 8;
-          }
-          targetX = clamp(targetX, 10, win.innerWidth - width - 10);
-          targetY = clamp(targetY, 10, win.innerHeight - height - 10);
-
-          const dx = targetX - position.x;
-          const dy = targetY - position.y;
-          const distance = Math.hypot(dx, dy);
-          const maxSpeed = reduceMotion.matches ? 115 : (moving ? 105 : 72);
-          const desiredVX = distance > 2 ? (dx / distance) * Math.min(maxSpeed, distance * 1.45) : 0;
-          const desiredVY = distance > 2 ? (dy / distance) * Math.min(maxSpeed, distance * 1.45) : 0;
-          const acceleration = reduceMotion.matches ? 7 : 2.6;
-          velocity.x += (desiredVX - velocity.x) * Math.min(1, acceleration * dt);
-          velocity.y += (desiredVY - velocity.y) * Math.min(1, acceleration * dt);
-          position.x = clamp(position.x + velocity.x * dt, 4, win.innerWidth - width - 4);
-          position.y = clamp(position.y + velocity.y * dt, 4, win.innerHeight - height - 4);
-          walker.style.left = `${position.x}px`;
-          walker.style.top = `${position.y}px`;
-
-          const movingBody = Math.hypot(velocity.x, velocity.y) > 13;
-          sprite.classList.toggle('walking', movingBody && !reduceMotion.matches);
-          const facing = Math.abs(velocity.x) > 5 ? (velocity.x > 0 ? 1 : -1) : lastDirection;
-          sprite.setAttribute('transform', facing > 0 ? '' : 'translate(120 0) scale(-1 1)');
-
-          const handX = position.x + (facing > 0 ? 91 : 29);
-          const handY = position.y + 46;
-          const aimX = cursor.x - handX;
-          const aimY = cursor.y - handY;
-          // SVG lantern points right at zero degrees; flip angle for left-facing sprite.
-          let angle = Math.atan2(aimY, Math.abs(aimX)) * 180 / Math.PI;
-          if (aimX < 0) angle = -angle;
-          lantern.setAttribute('transform', `rotate(${clamp(angle, -78, 78)} 91 78)`);
-
-          win.requestAnimationFrame(animate);
-        }
-
-        const onResize = () => {
-          resizeCanvas();
-          position.x = clamp(position.x, 4, win.innerWidth - width - 4);
-          position.y = clamp(position.y, 4, win.innerHeight - height - 4);
-        };
-        win.addEventListener('resize', onResize, { passive: true });
-        doc.addEventListener('pointermove', onPointerMove, { passive: true, capture: true });
-        doc.addEventListener('pointerleave', onPointerLeave, { passive: true });
-        const frameId = win.requestAnimationFrame(animate);
-
-        cleanup = () => {
-          win.cancelAnimationFrame(frameId);
-          win.removeEventListener('resize', onResize);
-          doc.removeEventListener('pointermove', onPointerMove, true);
-          doc.removeEventListener('pointerleave', onPointerLeave);
-          style.remove();
-          wrap.remove();
-          delete win.__olliEffectsCleanup;
-        };
-        win.__olliEffectsCleanup = cleanup;
-      } catch (_) {
-        // Ignore browser restrictions for embedded components.
+    const style = doc.createElement('style');
+    style.id = 'olli-effects-style';
+    style.textContent = `
+      #olli-effects { position: fixed; inset: 0; z-index: 2147483644; pointer-events: none; overflow: visible; }
+      #olli-star-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+      #olli-pointer-glow {
+        position: fixed; width: 34px; height: 34px; left: 0; top: 0; opacity: 0;
+        transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none;
+        background: radial-gradient(circle, rgba(255,255,255,.96) 0%, rgba(216,180,254,.9) 15%, rgba(168,85,247,.62) 38%, rgba(124,58,237,.22) 63%, transparent 80%);
+        filter: blur(2px) drop-shadow(0 0 9px rgba(168,85,247,.9));
+        transition: opacity .16s ease; will-change: left, top, opacity;
       }
-    })();
-    </script>
-    """,
-    height=0,
-    scrolling=False,
-)
+      #olli-walker {
+        position: fixed; left: 40px; top: 40px; width: 66px; height: 82px;
+        opacity: .98; pointer-events: none; will-change: left, top;
+        filter: drop-shadow(0 5px 8px rgba(91,33,182,.42));
+      }
+      #olli-walker svg { display: block; width: 100%; height: 100%; overflow: visible; }
+      #olli-sprite { transform-box: view-box; transform-origin: 60px 75px; }
+      #olli-sprite.walking #olli-leg-a { animation: olli-step-a .42s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 49px 103px; }
+      #olli-sprite.walking #olli-leg-b { animation: olli-step-b .42s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 69px 103px; }
+      #olli-sprite.walking #olli-arm-free { animation: olli-arm-swing .42s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 43px 65px; }
+      #olli-sprite.walking { animation: olli-body-bob .42s ease-in-out infinite alternate; }
+      #olli-lantern { transform-box: view-box; transition: transform .18s ease-out; }
+      #olli-lantern-beam { opacity: .84; filter: drop-shadow(0 0 6px rgba(192,132,252,.95)); }
+      @keyframes olli-step-a { from { transform: rotate(-20deg); } to { transform: rotate(20deg); } }
+      @keyframes olli-step-b { from { transform: rotate(18deg); } to { transform: rotate(-20deg); } }
+      @keyframes olli-arm-swing { from { transform: rotate(12deg); } to { transform: rotate(-12deg); } }
+      @keyframes olli-body-bob { from { translate: 0 0; } to { translate: 0 -1.5px; } }
+      @media (prefers-reduced-motion: reduce) {
+        #olli-sprite.walking, #olli-sprite.walking * { animation: none !important; }
+        #olli-lantern { transition: none !important; }
+      }
+      @media (hover: none) { #olli-walker, #olli-pointer-glow { display: none; } }
+    `;
+    doc.head.appendChild(style);
+
+    const wrap = doc.createElement('div');
+    wrap.id = 'olli-effects';
+    wrap.innerHTML = `
+      <canvas id="olli-star-canvas" aria-hidden="true"></canvas>
+      <div id="olli-pointer-glow" aria-hidden="true"></div>
+      <div id="olli-walker" aria-hidden="true">
+        <svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" role="presentation">
+          <defs>
+            <radialGradient id="olli-face" cx="32%" cy="24%" r="78%">
+              <stop stop-color="#FFFDF8"/><stop offset=".62" stop-color="#E9D5FF"/><stop offset="1" stop-color="#A78BFA"/>
+            </radialGradient>
+            <linearGradient id="olli-coat" x1="0" y1="0" x2="1" y2="1">
+              <stop stop-color="#E9D5FF"/><stop offset=".42" stop-color="#8B5CF6"/><stop offset="1" stop-color="#32145F"/>
+            </linearGradient>
+            <linearGradient id="olli-sleeve" x1="0" y1="0" x2="1" y2="1">
+              <stop stop-color="#E9D5FF"/><stop offset="1" stop-color="#6D28D9"/>
+            </linearGradient>
+            <linearGradient id="olli-boot" x1="0" y1="0" x2="0" y2="1">
+              <stop stop-color="#C4B5FD"/><stop offset="1" stop-color="#3B1A72"/>
+            </linearGradient>
+            <radialGradient id="olli-lamp-glow">
+              <stop stop-color="#FFF7CC" stop-opacity=".98"/><stop offset=".42" stop-color="#FDE68A" stop-opacity=".6"/><stop offset="1" stop-color="#A855F7" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <ellipse cx="60" cy="132" rx="25" ry="4" fill="#8B5CF6" opacity=".22"/>
+          <g id="olli-sprite">
+            <!-- legs, articulated boots and coat -->
+            <path id="olli-leg-a" d="M49 103 L45 119" stroke="#BBA6F5" stroke-width="7" stroke-linecap="round"/>
+            <path id="olli-leg-b" d="M69 103 L74 119" stroke="#D8CCFA" stroke-width="7" stroke-linecap="round"/>
+            <path d="M45 117 Q39 120 38 126 Q46 129 55 126 L53 120 Z" fill="url(#olli-boot)" stroke="#D8B4FE" stroke-width=".8"/>
+            <path d="M73 117 Q71 123 75 127 Q84 129 90 125 L84 120 Z" fill="url(#olli-boot)" stroke="#D8B4FE" stroke-width=".8"/>
+            <path d="M42 57 Q59 48 76 57 L81 103 Q61 111 39 103 Z" fill="url(#olli-coat)" stroke="#DDD6FE" stroke-width="1.3"/>
+            <path d="M43 59 Q49 55 54 55 L52 106 L39 103 Z" fill="#F5D0FE" opacity=".2"/>
+            <path d="M57 57 L61 103 M69 58 L74 101" stroke="#E9D5FF" stroke-opacity=".34" stroke-width="1"/>
+            <path d="M54 68 L68 68 L67 87 Q61 91 55 87 Z" fill="#32145F" opacity=".48"/>
+            <circle cx="61" cy="76" r="2.2" fill="#67E8F9"/>
+            <path d="M55 97 Q61 100 68 97" stroke="#F5D0FE" stroke-opacity=".7" stroke-width="1" fill="none"/>
+            <!-- face, hair, subtle highlights and eyes -->
+            <path d="M46 35 Q47 20 60 19 Q76 19 78 35 L75 52 Q71 61 60 61 Q48 59 45 49 Z" fill="url(#olli-face)" stroke="#F5D0FE" stroke-width="1.3"/>
+            <path d="M46 38 Q44 22 58 17 Q73 15 79 31 Q70 27 64 30 Q55 30 47 42 Z" fill="#512583"/>
+            <path d="M49 34 Q54 23 64 22" stroke="#E9D5FF" stroke-opacity=".8" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <ellipse cx="54" cy="41" rx="1.7" ry="2.4" fill="#30204F"/>
+            <ellipse cx="68" cy="40" rx="1.7" ry="2.4" fill="#30204F"/>
+            <circle cx="54.5" cy="40.5" r=".55" fill="#FFF"/><circle cx="68.5" cy="39.5" r=".55" fill="#FFF"/>
+            <path d="M57 49 Q61 52 66 48" stroke="#A855F7" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+            <!-- free arm swings against the walking legs -->
+            <path id="olli-arm-free" d="M43 65 L34 82 L41 86 L51 72" fill="none" stroke="url(#olli-sleeve)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M34 81 L31 86" stroke="#F1EAFE" stroke-width="5" stroke-linecap="round"/>
+            <!-- lantern arm and glowing lantern -->
+            <path d="M75 64 Q83 69 88 77" fill="none" stroke="url(#olli-sleeve)" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="89" cy="78" r="3.4" fill="#F1EAFE" stroke="#C4B5FD" stroke-width=".8"/>
+            <g id="olli-lantern" transform="rotate(0 91 78)">
+              <path id="olli-lantern-beam" d="M93 75 L119 58 Q121 79 108 98 Z" fill="url(#olli-lamp-glow)"/>
+              <path d="M88 74 Q89 69 94 71 L99 78 L95 84 L89 81 Z" fill="#FBBF24" stroke="#FFF0B3" stroke-width="1.3"/>
+              <path d="M89 73 L94 70 L98 74" fill="none" stroke="#FFF9DB" stroke-width="1.2" stroke-linecap="round"/>
+              <circle cx="95" cy="78" r="2.5" fill="#FFFBEA"/>
+              <path d="M89 82 L95 85" stroke="#B45309" stroke-width="1"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+    `;
+    doc.body.appendChild(wrap);
+
+    const walker = doc.getElementById('olli-walker');
+    const sprite = doc.getElementById('olli-sprite');
+    const lantern = doc.getElementById('olli-lantern');
+    const glow = doc.getElementById('olli-pointer-glow');
+    const canvas = doc.getElementById('olli-star-canvas');
+    const ctx = canvas.getContext('2d');
+    const reduceMotion = win.matchMedia('(prefers-reduced-motion: reduce)');
+    const width = 66;
+    const height = 82;
+    const cursor = { x: win.innerWidth * .55, y: win.innerHeight * .55 };
+    const position = { x: cursor.x - 125, y: cursor.y - 75 };
+    const velocity = { x: 0, y: 0 };
+    const trail = [];
+    let lastPointer = null;
+    let lastDirection = 1;
+    let lastTime = 0;
+    let visible = false;
+    let cleanup = () => {};
+    // frameId/disposed garantem que o loop antigo pare quando o Streamlit reexecuta o script.
+    let frameId = 0;
+    let disposed = false;
+
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+    function resizeCanvas() {
+      const dpr = Math.min(win.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(win.innerWidth * dpr);
+      canvas.height = Math.round(win.innerHeight * dpr);
+      canvas.style.width = `${win.innerWidth}px`;
+      canvas.style.height = `${win.innerHeight}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resizeCanvas();
+
+    function onPointerMove(event) {
+      if (event.pointerType === 'touch') return;
+      const now = performance.now();
+      const point = { x: event.clientX, y: event.clientY, t: now };
+      cursor.x = point.x;
+      cursor.y = point.y;
+      visible = true;
+      glow.style.left = `${point.x}px`;
+      glow.style.top = `${point.y}px`;
+      glow.style.opacity = '1';
+
+      if (lastPointer) {
+        const dx = point.x - lastPointer.x;
+        const dy = point.y - lastPointer.y;
+        const distance = Math.hypot(dx, dy);
+        const dt = Math.max(8, now - lastPointer.t);
+        if (Math.abs(dx) > 1) lastDirection = dx > 0 ? 1 : -1;
+        if (distance > 1) {
+          // Keep cursor samples to paint a fading, intermittently twinkling comet tail.
+          const steps = Math.min(7, Math.max(1, Math.ceil(distance / 24)));
+          for (let i = 1; i <= steps; i++) {
+            const ratio = i / steps;
+            trail.push({
+              x: lastPointer.x + dx * ratio,
+              y: lastPointer.y + dy * ratio,
+              t: now,
+              life: 360 + Math.random() * 260,
+              size: 1.2 + Math.random() * 2.5,
+              phase: Math.random() * Math.PI * 2,
+            });
+          }
+          // Limite de partículas: evita queda de FPS com movimentos muito rápidos.
+          if (trail.length > 240) trail.splice(0, trail.length - 240);
+          if (distance / dt > .18) sprite.classList.add('walking');
+        }
+      }
+      lastPointer = point;
+    }
+
+    function onPointerLeave() {
+      visible = false;
+      glow.style.opacity = '0';
+    }
+
+    function drawTrail(now) {
+      ctx.clearRect(0, 0, win.innerWidth, win.innerHeight);
+      for (let i = trail.length - 1; i >= 0; i--) {
+        const particle = trail[i];
+        const age = now - particle.t;
+        const progress = age / particle.life;
+        if (progress >= 1) {
+          trail.splice(i, 1);
+          continue;
+        }
+        const flicker = .48 + .52 * Math.abs(Math.sin(now * .025 + particle.phase));
+        const alpha = (1 - progress) * flicker;
+        const radius = particle.size * (1 - progress * .45);
+        const gradient = ctx.createRadialGradient(particle.x, particle.y, 0, particle.x, particle.y, radius * 5);
+        gradient.addColorStop(0, `rgba(255,255,255,${alpha})`);
+        gradient.addColorStop(.24, `rgba(216,180,254,${alpha * .95})`);
+        gradient.addColorStop(.58, `rgba(168,85,247,${alpha * .7})`);
+        gradient.addColorStop(1, 'rgba(124,58,237,0)');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, radius * 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      if (visible && lastPointer && trail.length) {
+        const newest = trail[trail.length - 1];
+        const dx = cursor.x - newest.x;
+        const dy = cursor.y - newest.y;
+        const length = Math.hypot(dx, dy);
+        if (length > 2) {
+          const tail = ctx.createLinearGradient(cursor.x, cursor.y, cursor.x - dx * 3, cursor.y - dy * 3);
+          tail.addColorStop(0, 'rgba(255,255,255,.88)');
+          tail.addColorStop(.25, 'rgba(192,132,252,.68)');
+          tail.addColorStop(1, 'rgba(124,58,237,0)');
+          ctx.strokeStyle = tail;
+          ctx.lineWidth = 3;
+          ctx.lineCap = 'round';
+          ctx.shadowColor = '#A855F7';
+          ctx.shadowBlur = 12;
+          ctx.beginPath();
+          ctx.moveTo(cursor.x, cursor.y);
+          ctx.lineTo(cursor.x - dx * 3, cursor.y - dy * 3);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+      }
+    }
+
+    function animate(now) {
+      if (disposed) return;
+      const dt = lastTime ? Math.min((now - lastTime) / 1000, .04) : 1 / 60;
+      lastTime = now;
+      drawTrail(now);
+
+      // A moving target stays well ahead of the explorer; when it stops,
+      // the target settles nearby so Olli can approach and aim the lantern.
+      const cursorSpeed = lastPointer && now - lastPointer.t < 90
+        ? Math.hypot(cursor.x - (lastPointer.x || cursor.x), cursor.y - (lastPointer.y || cursor.y)) / Math.max(dt, .016)
+        : 0;
+      const moving = sprite.classList.contains('walking') || cursorSpeed > 35;
+      let targetX;
+      let targetY;
+      if (moving && lastPointer) {
+        const lookAhead = Math.min(110, cursorSpeed * .12);
+        targetX = cursor.x - lastDirection * (88 + lookAhead);
+        targetY = cursor.y + 24;
+      } else {
+        targetX = cursor.x - lastDirection * 62;
+        targetY = cursor.y + 8;
+      }
+      targetX = clamp(targetX, 10, win.innerWidth - width - 10);
+      targetY = clamp(targetY, 10, win.innerHeight - height - 10);
+
+      const dx = targetX - position.x;
+      const dy = targetY - position.y;
+      const distance = Math.hypot(dx, dy);
+      const maxSpeed = reduceMotion.matches ? 115 : (moving ? 105 : 72);
+      const desiredVX = distance > 2 ? (dx / distance) * Math.min(maxSpeed, distance * 1.45) : 0;
+      const desiredVY = distance > 2 ? (dy / distance) * Math.min(maxSpeed, distance * 1.45) : 0;
+      const acceleration = reduceMotion.matches ? 7 : 2.6;
+      velocity.x += (desiredVX - velocity.x) * Math.min(1, acceleration * dt);
+      velocity.y += (desiredVY - velocity.y) * Math.min(1, acceleration * dt);
+      position.x = clamp(position.x + velocity.x * dt, 4, win.innerWidth - width - 4);
+      position.y = clamp(position.y + velocity.y * dt, 4, win.innerHeight - height - 4);
+      walker.style.left = `${position.x}px`;
+      walker.style.top = `${position.y}px`;
+
+      const movingBody = Math.hypot(velocity.x, velocity.y) > 13;
+      sprite.classList.toggle('walking', movingBody && !reduceMotion.matches);
+      const facing = Math.abs(velocity.x) > 5 ? (velocity.x > 0 ? 1 : -1) : lastDirection;
+      sprite.setAttribute('transform', facing > 0 ? '' : 'translate(120 0) scale(-1 1)');
+
+      const handX = position.x + (facing > 0 ? 91 : 29);
+      const handY = position.y + 46;
+      const aimX = cursor.x - handX;
+      const aimY = cursor.y - handY;
+      // SVG lantern points right at zero degrees; flip angle for left-facing sprite.
+      let angle = Math.atan2(aimY, Math.abs(aimX)) * 180 / Math.PI;
+      if (aimX < 0) angle = -angle;
+      lantern.setAttribute('transform', `rotate(${clamp(angle, -78, 78)} 91 78)`);
+
+      frameId = win.requestAnimationFrame(animate);
+    }
+
+    const onResize = () => {
+      resizeCanvas();
+      position.x = clamp(position.x, 4, win.innerWidth - width - 4);
+      position.y = clamp(position.y, 4, win.innerHeight - height - 4);
+    };
+    win.addEventListener('resize', onResize, { passive: true });
+    doc.addEventListener('pointermove', onPointerMove, { passive: true, capture: true });
+    doc.addEventListener('pointerleave', onPointerLeave, { passive: true });
+    frameId = win.requestAnimationFrame(animate);
+
+    cleanup = () => {
+      disposed = true;
+      win.cancelAnimationFrame(frameId);
+      win.removeEventListener('resize', onResize);
+      doc.removeEventListener('pointermove', onPointerMove, true);
+      doc.removeEventListener('pointerleave', onPointerLeave);
+      style.remove();
+      wrap.remove();
+      delete win.__olliEffectsCleanup;
+    };
+    win.__olliEffectsCleanup = cleanup;
+  } catch (_) {
+    // Ignore browser restrictions for embedded components.
+  }
+})();
+</script>
+"""
+components.html(JS_EFEITOS_OLLI, height=0, scrolling=False)
 
 # =====================================================================
 # DADOS / FUNÇÕES
@@ -413,6 +485,7 @@ COLUNAS = [
     "Situação de Mercado", "Produto Olli", "CNPJ", "Clientes Estimados", "Ticket Médio (R$)",
     "Data Cadastro", "Score Conectividade", "Origem Lead",
 ]
+COLUNAS_NUMERICAS = ("Clientes Estimados", "Ticket Médio (R$)", "Score Conectividade")
 
 DADOS_INICIAIS = [
     {
@@ -452,15 +525,18 @@ def registrar_log(mensagem: str, usuario: str = "Sistema") -> None:
         pass
 
 
-def normalizar_df(df: pd.DataFrame) -> pd.DataFrame:
+def normalizar_df(df: pd.DataFrame | None) -> pd.DataFrame:
     if df is None:
         return pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS)
     df = df.copy()
     for coluna in COLUNAS:
         if coluna not in df.columns:
-            df[coluna] = 0 if coluna in ("Clientes Estimados", "Score Conectividade") else "Não Informado"
-    df["Clientes Estimados"] = pd.to_numeric(df["Clientes Estimados"], errors="coerce").fillna(0)
-    df["Score Conectividade"] = pd.to_numeric(df["Score Conectividade"], errors="coerce").fillna(0).clip(0, 100)
+            df[coluna] = 0 if coluna in COLUNAS_NUMERICAS else "Não Informado"
+        elif coluna in COLUNAS_NUMERICAS:
+            df[coluna] = pd.to_numeric(df[coluna], errors="coerce").fillna(0)
+        else:
+            df[coluna] = df[coluna].fillna("Não Informado").astype(str)
+    df["Score Conectividade"] = df["Score Conectividade"].clip(0, 100)
     return df
 
 
@@ -483,8 +559,11 @@ def carregar_dados() -> pd.DataFrame:
 
 
 def salvar_dados(df: pd.DataFrame) -> bool:
+    # Grava em arquivo temporário e troca no final: uma falha no meio não corrompe o CSV.
+    caminho_tmp = f"{ARQUIVO_BANCO_DADOS}.tmp"
     try:
-        normalizar_df(df).to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
+        normalizar_df(df).to_csv(caminho_tmp, index=False, encoding="utf-8")
+        os.replace(caminho_tmp, ARQUIVO_BANCO_DADOS)
         carregar_dados.clear()
         return True
     except OSError as erro:
@@ -526,11 +605,146 @@ def mostrar_estado_vazio() -> None:
             </g>
           </svg>
           <div class="empty-title">Que tal procurar novos leads?</div>
-          <div class="empty-copy">Sua busca não encontrou provedores. Experimente outro nome ou localidade.</div>
+          <div class="empty-copy">Sua busca não encontrou provedores. Experimente outro nome, localidade ou filtro.</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+
+# =====================================================================
+# HELPERS DE UI
+# =====================================================================
+ORDENACOES = {
+    "Maior score": ("Score Conectividade", False),
+    "Mais clientes": ("Clientes Estimados", False),
+    "Cadastro recente": ("Data Cadastro", False),
+    "Provedor (A–Z)": ("Provedor", True),
+}
+STATUS_ESTILOS = {  # status -> (cor do texto, fundo)
+    "Qualificado": ("#6EE7B7", "rgba(52,211,153,.14)"),
+    "Agendado (Reunião)": ("#67E8F9", "rgba(34,211,238,.14)"),
+    "Não Chamado": ("#D8B4FE", "rgba(124,58,237,.22)"),
+}
+STATUS_PADRAO = ("#CBD5E1", "rgba(148,163,184,.16)")
+
+
+def formatar_numero(valor: float, casas: int = 0) -> str:
+    """Formata no padrão brasileiro: 12.000 / 89,90."""
+    return f"{valor:,.{casas}f}".replace(",", "_").replace(".", ",").replace("_", ".")
+
+
+def formatar_moeda(valor: float) -> str:
+    return f"R$ {formatar_numero(valor, 2)}"
+
+
+def formatar_compacto(valor: float) -> str:
+    for limite, sufixo in ((1e9, " bi"), (1e6, " mi"), (1e3, " mil")):
+        if abs(valor) >= limite:
+            return formatar_numero(valor / limite, 2) + sufixo
+    return formatar_numero(valor)
+
+
+def cor_score(score: int) -> tuple[str, str]:
+    if score >= 75:
+        return "#22D3EE", "#34D399"
+    if score >= 50:
+        return "#7C3AED", "#22D3EE"
+    return "#F472B6", "#A855F7"
+
+
+def limpar_html(html: str) -> str:
+    """Remove quebras e indentação para o Markdown não tratar o HTML como bloco de código."""
+    return "".join(linha.strip() for linha in html.splitlines())
+
+
+def html_kpi(titulo: str, valor: str, cor: str = "#7C3AED") -> str:
+    return limpar_html(f"""
+        <div class="kpi-container" style="--accent:{cor}">
+          <div class="kpi-title">{escape(titulo)}</div>
+          <div class="kpi-value">{escape(valor)}</div>
+        </div>
+    """)
+
+
+def html_ia(texto: str) -> str:
+    return f'<div class="ai-response"><span class="ai-tag">✦ IA</span><br>{escape(texto)}</div>'
+
+
+def html_card(lead: dict, indice: int = 0) -> str:
+    def campo(chave: str) -> str:
+        return escape(str(lead.get(chave, "Não informado")))
+
+    provedor, status, local = campo("Provedor"), campo("Status Contato"), campo("Localidade")
+    produto, responsavel, cargo = campo("Produto Olli"), campo("Responsáveis"), campo("Cargo")
+    dor = campo("Situação de Mercado")
+    score = int(lead["Score Conectividade"])
+    cor_a, cor_b = cor_score(score)
+    cor_status, fundo_status = STATUS_ESTILOS.get(str(lead.get("Status Contato")), STATUS_PADRAO)
+
+    email = str(lead.get("Email", ""))
+    telefone = "".join(c for c in str(lead.get("Telefone", "")) if c.isdigit() or c == "+")
+    chips = [
+        f'<span class="chip">👥 {formatar_numero(lead["Clientes Estimados"])} clientes</span>',
+        f'<span class="chip">💳 Ticket {formatar_moeda(lead["Ticket Médio (R$)"])}</span>',
+        f'<span class="chip">🛰️ {campo("Origem Lead")}</span>',
+    ]
+    if "@" in email:
+        chips.append(f'<a class="chip" href="mailto:{escape(email)}">✉️ {escape(email)}</a>')
+    if telefone:
+        chips.append(f'<a class="chip" href="tel:{telefone}">📞 {campo("Telefone")}</a>')
+    chips_html = "".join(chips)
+
+    return limpar_html(f"""
+        <div class="hologram-card" style="animation-delay:{min(indice, 8) * 60}ms">
+          <div class="card-head">
+            <span class="card-title">{provedor}</span>
+            <span class="pill" style="color:{cor_status};background:{fundo_status}">{status}</span>
+          </div>
+          <div class="card-grid">
+            <div><span class="meta-label">📍 Localidade</span><b>{local}</b></div>
+            <div><span class="meta-label">🎯 Produto Olli</span><b class="accent">{produto}</b></div>
+            <div><span class="meta-label">💼 Responsável</span><b>{responsavel} ({cargo})</b></div>
+          </div>
+          <div class="pain"><span class="meta-label">⚠️ Situação de mercado / dor</span>{dor}</div>
+          <div class="chips">{chips_html}</div>
+          <div class="score-label">Score de saúde da rede ({score}%)</div>
+          <div class="score-track"><div class="score-fill" style="width:{score}%;--c1:{cor_a};--c2:{cor_b}"></div></div>
+        </div>
+    """)
+
+
+def filtrar_leads(
+    df: pd.DataFrame, termo: str, status: list[str], produtos: list[str], score_min: int, ordem: str
+) -> pd.DataFrame:
+    mascara = df["Score Conectividade"] >= score_min
+    if termo:
+        mascara &= (
+            df["Provedor"].str.contains(termo, case=False, regex=False)
+            | df["Localidade"].str.contains(termo, case=False, regex=False)
+        )
+    if status:
+        mascara &= df["Status Contato"].isin(status)
+    if produtos:
+        mascara &= df["Produto Olli"].isin(produtos)
+    coluna, crescente = ORDENACOES[ordem]
+    return df[mascara].sort_values(
+        coluna,
+        ascending=crescente,
+        kind="stable",
+        key=lambda serie: serie if pd.api.types.is_numeric_dtype(serie) else serie.str.lower(),
+    )
+
+
+def limpar_busca() -> None:
+    # Callback: roda antes dos widgets serem criados, então pode alterar o estado do campo.
+    st.session_state.termo_busca_provedor = ""
+    st.session_state["campo_busca_provedor"] = ""
+    st.session_state.scroll_resultados = False
+
+
+def pedir_exclusao(lead_id: str | None) -> None:
+    st.session_state.confirmar_exclusao = lead_id
 
 
 # =====================================================================
@@ -539,6 +753,7 @@ def mostrar_estado_vazio() -> None:
 st.session_state.setdefault("termo_busca_provedor", "")
 st.session_state.setdefault("confirmar_exclusao", None)
 st.session_state.setdefault("scroll_resultados", False)
+st.session_state.setdefault("abordagens", {})
 
 try:
     df = normalizar_df(carregar_dados().copy())
@@ -546,23 +761,40 @@ except Exception:
     df = normalizar_df(pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS))
 
 st.markdown('<div class="cyber-title">⚡ Olli Hub Enterprise v2.0</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">SDR Intelligence Matrix &amp; Real-time Network Mapping</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="subtitle">SDR Intelligence Matrix &amp; Real-time Network Mapping<span class="live">Sistema online</span></div>',
+    unsafe_allow_html=True,
+)
 
-k1, k2, k3 = st.columns(3)
-with k1:
-    st.markdown(f'<div class="kpi-container"><div class="kpi-title">Total Provedores</div><div class="kpi-value">{len(df)}</div></div>', unsafe_allow_html=True)
-with k2:
-    st.markdown(f'<div class="kpi-container" style="border-left-color:#A855F7"><div class="kpi-title">Clientes Estimados</div><div class="kpi-value">{int(df["Clientes Estimados"].sum()):,}</div></div>', unsafe_allow_html=True)
-with k3:
-    media = int(df["Score Conectividade"].mean()) if not df.empty else 0
-    st.markdown(f'<div class="kpi-container" style="border-left-color:#22D3EE"><div class="kpi-title">Score Médio</div><div class="kpi-value">{media}%</div></div>', unsafe_allow_html=True)
+media = int(df["Score Conectividade"].mean()) if not df.empty else 0
+mrr = float((df["Clientes Estimados"] * df["Ticket Médio (R$)"]).sum())
+kpis = [
+    ("Total Provedores", formatar_numero(len(df)), "#7C3AED"),
+    ("Clientes Estimados", formatar_numero(df["Clientes Estimados"].sum()), "#A855F7"),
+    ("Score Médio", f"{media}%", "#22D3EE"),
+    ("MRR Estimado", f"R$ {formatar_compacto(mrr)}", "#34D399"),
+]
+for coluna_kpi, (titulo_kpi, valor_kpi, cor_kpi) in zip(st.columns(len(kpis)), kpis):
+    coluna_kpi.markdown(html_kpi(titulo_kpi, valor_kpi, cor_kpi), unsafe_allow_html=True)
+
+with st.sidebar:
+    st.markdown('<div class="sidebar-brand">🔮 OLLI <span>HUB</span></div>', unsafe_allow_html=True)
+    st.caption("Filtros de inteligência")
+    filtro_status = st.multiselect("Status do contato", sorted(df["Status Contato"].unique()))
+    filtro_produto = st.multiselect("Produto Olli", sorted(df["Produto Olli"].unique()))
+    score_minimo = st.selectbox(
+        "Score mínimo", [0, 50, 75, 90], format_func=lambda v: "Todos" if v == 0 else f"{v}% ou mais"
+    )
+    ordem = st.selectbox("Ordenar por", list(ORDENACOES))
 
 st.write("---")
 st.markdown("### 🔎 Busca de provedores")
 with st.form("form_busca_provedor", clear_on_submit=False):
     campo_busca, botao_busca = st.columns([5, 1])
     with campo_busca:
-        termo_digitado = st.text_input("Busca", placeholder="Nome do provedor ou cidade...", label_visibility="collapsed", key="campo_busca_provedor")
+        termo_digitado = st.text_input(
+            "Busca", placeholder="Nome do provedor ou cidade...", label_visibility="collapsed", key="campo_busca_provedor"
+        )
     with botao_busca:
         buscar = st.form_submit_button("🔍 Procurar")
 
@@ -575,97 +807,78 @@ with barra_busca:
     if st.session_state.termo_busca_provedor:
         st.caption(f"Busca ativa: {st.session_state.termo_busca_provedor}")
 with barra_limpar:
-    if st.button("Limpar", key="limpar_busca"):
-        st.session_state.termo_busca_provedor = ""
-        st.session_state["campo_busca_provedor"] = ""
-        st.session_state.scroll_resultados = False
-        st.rerun()
+    st.button("Limpar", key="limpar_busca", on_click=limpar_busca)
 
 termo = st.session_state.termo_busca_provedor.strip()
-if termo:
-    prov_match = df["Provedor"].fillna("").astype(str).str.contains(termo, case=False, regex=False)
-    local_match = df["Localidade"].fillna("").astype(str).str.contains(termo, case=False, regex=False)
-    resultados = df[prov_match | local_match].copy()
-else:
-    resultados = df.copy()
+resultados = filtrar_leads(df, termo, filtro_status, filtro_produto, score_minimo, ordem)
+
+with st.sidebar:
+    st.download_button(
+        "⬇️ Exportar CSV",
+        data=resultados.to_csv(index=False).encode("utf-8-sig"),
+        file_name=f"leads_olli_{datetime.now():%Y%m%d_%H%M}.csv",
+        mime="text/csv",
+        disabled=resultados.empty,
+        on_click=registrar_log,
+        args=("Exportação de leads em CSV", "USUARIO"),
+    )
 
 st.markdown('<div id="scroll-resultados"></div>', unsafe_allow_html=True)
 if st.session_state.scroll_resultados:
-    components.html("""
+    components.html(
+        """
         <script>
           setTimeout(() => {
             const el = window.parent.document.getElementById('scroll-resultados');
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 120);
         </script>
-        """, height=0)
+        """,
+        height=0,
+    )
     st.session_state.scroll_resultados = False
 
 st.markdown("### 🔮 Provedores")
+st.caption(f"Exibindo {len(resultados)} de {len(df)} provedores")
 if resultados.empty:
     mostrar_estado_vazio()
 else:
-    for _, row in resultados.iterrows():
-        lead_id = str(row.get("ID", row.name))
-        provedor_raw = str(row.get("Provedor", "Não informado"))
-        responsavel_raw = str(row.get("Responsáveis", "Não informado"))
-        dor_raw = str(row.get("Situação de Mercado", "Não informada"))
-        produto_raw = str(row.get("Produto Olli", "Não informado"))
-        score_val = pd.to_numeric(row.get("Score Conectividade", 0), errors="coerce")
-        score = max(0, min(100, int(score_val))) if pd.notna(score_val) else 0
+    for indice, lead in enumerate(resultados.to_dict("records")):
+        lead_id = str(lead["ID"])
+        chave = f"{lead_id}_{indice}"
+        provedor = lead["Provedor"]
 
         card_col, action_col = st.columns([4, 1])
         with card_col:
-            provedor = escape(provedor_raw)
-            status = escape(str(row.get("Status Contato", "Não informado")))
-            local = escape(str(row.get("Localidade", "Não informada")))
-            responsavel = escape(responsavel_raw)
-            cargo = escape(str(row.get("Cargo", "Não informado")))
-            produto = escape(produto_raw)
-            dor = escape(dor_raw)
-            st.markdown(f"""
-                <div class="hologram-card">
-                  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-                    <span style="color:#22D3EE;font-size:1.25rem;font-weight:750">{provedor}</span>
-                    <span style="background:rgba(124,58,237,.2);color:#D8B4FE;padding:4px 11px;border-radius:20px;font-size:.78rem">{status}</span>
-                  </div>
-                  <div style="margin-top:16px;display:grid;grid-template-columns:repeat(3,minmax(130px,1fr));gap:14px">
-                    <div><small style="color:#64748B">📍 LOCALIDADE</small><br><b>{local}</b></div>
-                    <div><small style="color:#64748B">🎯 PRODUTO OLLI</small><br><b style="color:#C084FC">{produto}</b></div>
-                    <div><small style="color:#64748B">💼 RESPONSÁVEL</small><br><b>{responsavel} ({cargo})</b></div>
-                  </div>
-                  <div style="margin-top:15px;padding:10px 12px;background:rgba(255,255,255,.025);border-left:3px solid #7C3AED;border-radius:8px">
-                    <small style="color:#64748B">⚠️ SITUAÇÃO DE MERCADO / DOR</small><br><span style="color:#CBD5E1">{dor}</span>
-                  </div>
-                  <div style="margin-top:14px"><small style="color:#94A3B8">SCORE DE SAÚDE DA REDE ({score}%)</small>
-                    <div class="score-track"><div class="score-fill" style="width:{score}%"></div></div>
-                  </div>
-                </div>
-                """, unsafe_allow_html=True)
+            st.markdown(html_card(lead, indice), unsafe_allow_html=True)
+            slot_ia = st.empty()
 
         with action_col:
             st.write("")
-            if st.button("✨ Gerar abordagem", key=f"ia_{lead_id}"):
-                sugestao = gerar_abordagem_ia(provedor_raw, responsavel_raw, dor_raw, produto_raw)
-                st.markdown(f'<div class="ai-response"><b>Abordagem sugerida</b><br><br>{escape(sugestao)}</div>', unsafe_allow_html=True)
-                registrar_log(f"Abordagem gerada para {provedor_raw}", "AI_ENGINE")
+            if st.button("✨ Gerar abordagem", key=f"ia_{chave}"):
+                st.session_state.abordagens[lead_id] = gerar_abordagem_ia(
+                    provedor, lead["Responsáveis"], lead["Situação de Mercado"], lead["Produto Olli"]
+                )
+                registrar_log(f"Abordagem gerada para {provedor}", "AI_ENGINE")
+                st.toast("Abordagem gerada", icon="✨")
 
-            if st.button("🗑️ Excluir lead", key=f"excluir_{lead_id}"):
-                st.session_state.confirmar_exclusao = lead_id
-                st.rerun()
+            st.button("🗑️ Excluir lead", key=f"excluir_{chave}", on_click=pedir_exclusao, args=(lead_id,))
 
             if st.session_state.confirmar_exclusao == lead_id:
-                st.warning(f"Excluir {provedor_raw} permanentemente?")
+                st.warning(f"Excluir {provedor} permanentemente?")
                 confirmar_col, cancelar_col = st.columns(2)
                 with confirmar_col:
-                    if st.button("Confirmar", key=f"confirmar_{lead_id}"):
+                    if st.button("Confirmar", key=f"confirmar_{chave}"):
                         novos = df[df["ID"].astype(str) != lead_id].copy()
                         if salvar_dados(novos):
-                            registrar_log(f"Lead {provedor_raw} ({lead_id}) excluído", "USUARIO")
+                            registrar_log(f"Lead {provedor} ({lead_id}) excluído", "USUARIO")
+                            st.session_state.abordagens.pop(lead_id, None)
                             st.session_state.confirmar_exclusao = None
-                            st.success("Lead excluído.")
+                            st.toast("Lead excluído", icon="🗑️")
                             st.rerun()
                 with cancelar_col:
-                    if st.button("Cancelar", key=f"cancelar_{lead_id}"):
-                        st.session_state.confirmar_exclusao = None
-                        st.rerun()
+                    st.button("Cancelar", key=f"cancelar_{chave}", on_click=pedir_exclusao, args=(None,))
+
+        abordagem = st.session_state.abordagens.get(lead_id)
+        if abordagem:
+            slot_ia.markdown(html_ia(abordagem), unsafe_allow_html=True)
