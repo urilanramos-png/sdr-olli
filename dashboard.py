@@ -7,7 +7,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 # =====================================================================
-# CONFIGURAÇÕES
+# CONFIGURAÇÃO
 # =====================================================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ARQUIVO_BANCO_DADOS = os.path.join(BASE_DIR, "banco_leads_sdr_enterprise.csv")
@@ -20,7 +20,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# CSS sem fontes externas para reduzir requisições e acelerar o carregamento.
 st.markdown(
     """
     <style>
@@ -79,9 +78,7 @@ st.markdown(
         .empty-title { color:#E9D5FF; font-size:1.3rem; font-weight:750; margin:8px 0 4px; }
         .empty-copy { color:#A1A1AA; font-size:.95rem; }
         .walker { transform-origin:center; animation: walk-across 8s ease-in-out infinite alternate; }
-        .walker-arm { transform-origin: 50px 43px; animation: lantern-swing .55s ease-in-out infinite alternate; }
         @keyframes walk-across { from { transform:translateX(-105px); } to { transform:translateX(105px); } }
-        @keyframes lantern-swing { from { transform:rotate(-8deg); } to { transform:rotate(12deg); } }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
         }
@@ -90,8 +87,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Um único overlay leve: halo que acompanha o mouse e personagem 2D animado.
-# Falhas de acesso do navegador ao documento hospedeiro não afetam o dashboard.
 components.html(
     """
     <script>
@@ -99,41 +94,62 @@ components.html(
       try {
         const doc = window.parent.document;
         if (doc.getElementById('olli-effects')) return;
+
         const style = doc.createElement('style');
         style.textContent = `
-          #olli-pointer-light { position:fixed; z-index:2147483645; width:150px; height:150px;
-            left:0; top:0; pointer-events:none; opacity:0; transform:translate(-50%,-50%);
-            border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,.2) 0%,rgba(216,180,254,.18) 18%,rgba(168,85,247,.16) 38%,rgba(124,58,237,.08) 58%,transparent 72%);
-            filter:blur(3px); transition:opacity .2s ease; }
-          #olli-walker { position:fixed; z-index:2147483644; left:50%; bottom:10px; width:110px; height:125px;
-            pointer-events:none; opacity:.72; transform:translateX(-50%); animation:olli-walk 10s ease-in-out infinite alternate; }
-          #olli-walker svg { width:100%; height:100%; overflow:visible; }
-          #olli-walker .beam { transform-origin:58px 66px; animation:olli-beam 2.6s ease-in-out infinite alternate; }
-          @keyframes olli-walk { from { margin-left:-34vw; } to { margin-left:34vw; } }
-          @keyframes olli-beam { from { transform:rotate(-12deg); opacity:.45; } to { transform:rotate(12deg); opacity:.8; } }
-          @media (prefers-reduced-motion: reduce) { #olli-walker, #olli-walker .beam { animation:none !important; } }
+          #olli-pointer-light {
+            position: fixed; z-index: 2147483645; width: 150px; height: 150px; left: 0; top: 0;
+            pointer-events: none; opacity: 0; transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,.2) 0%, rgba(216,180,254,.18) 18%, rgba(168,85,247,.16) 38%, rgba(124,58,237,.08) 58%, transparent 72%);
+            filter: blur(3px); transition: opacity .2s ease;
+          }
+          #olli-walker {
+            position: fixed; z-index: 2147483644; left: 50%; bottom: 12px; width: 110px; height: 125px;
+            pointer-events: none; opacity: .72; transform: translateX(-50%);
+            animation: olli-walk 10s ease-in-out infinite alternate;
+          }
+          #olli-walker svg { width: 100%; height: 100%; overflow: visible; }
+          #olli-walker .beam { transform-origin: 58px 66px; animation: olli-beam 2.6s ease-in-out infinite alternate; }
+          @keyframes olli-walk { from { margin-left: -34vw; } to { margin-left: 34vw; } }
+          @keyframes olli-beam { from { transform: rotate(-12deg); opacity: .45; } to { transform: rotate(12deg); opacity: .8; } }
+          @media (prefers-reduced-motion: reduce) { #olli-walker, #olli-walker .beam { animation: none !important; } }
         `;
-        style.id = 'olli-effects-style'; doc.head.appendChild(style);
-        const wrap = doc.createElement('div'); wrap.id = 'olli-effects';
-        wrap.innerHTML = `<div id="olli-pointer-light"></div><div id="olli-walker" aria-hidden="true">
-          <svg viewBox="0 0 110 125" xmlns="http://www.w3.org/2000/svg">
-            <defs><radialGradient id="lanternGlow"><stop stop-color="#fff7cc" stop-opacity=".85"/><stop offset="1" stop-color="#c084fc" stop-opacity="0"/></radialGradient></defs>
-            <path class="beam" d="M58 66 L101 36 Q108 63 91 89 Z" fill="url(#lanternGlow)"/>
-            <circle cx="49" cy="30" r="10" fill="#DDD6FE"/>
-            <path d="M39 42 Q49 37 59 43 L64 69 L38 69 Z" fill="#8B5CF6"/>
-            <path d="M42 67 L39 94 M59 67 L64 93" stroke="#C4B5FD" stroke-width="6" stroke-linecap="round"/>
-            <path d="M42 47 L31 62 M58 47 L69 59" stroke="#C4B5FD" stroke-width="5" stroke-linecap="round"/>
-            <g class="beam"><path d="M70 58 L78 54 L82 64 L73 68 Z" fill="#FDE68A" stroke="#F5D17A" stroke-width="2"/><circle cx="78" cy="61" r="10" fill="url(#lanternGlow)"/></g>
-            <path d="M34 97 H47 M60 97 H73" stroke="#E9D5FF" stroke-width="5" stroke-linecap="round"/>
-          </svg></div>`;
+        doc.head.appendChild(style);
+
+        const wrap = doc.createElement('div');
+        wrap.id = 'olli-effects';
+        wrap.innerHTML = `
+          <div id="olli-pointer-light"></div>
+          <div id="olli-walker" aria-hidden="true">
+            <svg viewBox="0 0 110 125" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <radialGradient id="lanternGlow">
+                  <stop stop-color="#FDE68A" stop-opacity=".85"/>
+                  <stop offset="1" stop-color="#A855F7" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+              <path class="beam" d="M58 66 L101 36 Q108 63 91 89 Z" fill="url(#lanternGlow)"/>
+              <circle cx="49" cy="30" r="10" fill="#DDD6FE"/>
+              <path d="M39 42 Q49 37 59 43 L64 69 L38 69 Z" fill="#8B5CF6"/>
+              <path d="M42 67 L39 94 M59 67 L64 93" stroke="#C4B5FD" stroke-width="6" stroke-linecap="round"/>
+              <path d="M42 47 L31 62 M58 47 L69 59" stroke="#C4B5FD" stroke-width="5" stroke-linecap="round"/>
+              <g class="beam"><path d="M70 58 L78 54 L82 64 L73 68 Z" fill="#FDE68A" stroke="#F5D17A" stroke-width="2"/><circle cx="78" cy="61" r="10" fill="url(#lanternGlow)"/></g>
+              <path d="M34 97 H47 M60 97 H73" stroke="#E9D5FF" stroke-width="5" stroke-linecap="round"/>
+            </svg>
+          </div>
+        `;
         doc.body.appendChild(wrap);
+
         const light = doc.getElementById('olli-pointer-light');
         doc.addEventListener('pointermove', (event) => {
           if (event.pointerType === 'touch' || window.parent.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-          light.style.left = event.clientX + 'px'; light.style.top = event.clientY + 'px'; light.style.opacity = '1';
-        }, {passive:true});
-        doc.addEventListener('pointerleave', () => { light.style.opacity = '0'; }, {passive:true});
-      } catch (_) { /* O iframe pode não ter permissão para acessar a página principal. */ }
+          light.style.left = event.clientX + 'px';
+          light.style.top = event.clientY + 'px';
+          light.style.opacity = '1';
+        }, { passive: true });
+        doc.addEventListener('pointerleave', () => { light.style.opacity = '0'; }, { passive: true });
+      } catch (_) { /* ignore */ }
     })();
     </script>
     """,
@@ -142,17 +158,69 @@ components.html(
 )
 
 # =====================================================================
-# DADOS E FUNÇÕES
+# DADOS / FUNÇÕES
 # =====================================================================
 COLUNAS = [
     "ID", "Status Contato", "Provedor", "Responsáveis", "Cargo", "Localidade", "Telefone", "Email",
     "Situação de Mercado", "Produto Olli", "CNPJ", "Clientes Estimados", "Ticket Médio (R$)",
     "Data Cadastro", "Score Conectividade", "Origem Lead",
 ]
+
 DADOS_INICIAIS = [
-    {"ID":"ISP-701", "Status Contato":"Qualificado", "Provedor":"Alpha Fibra Telecom", "Responsáveis":"Carlos Silva", "Cargo":"Diretor de Operações", "Localidade":"Chapecó - SC", "Telefone":"(49) 3321-1000", "Email":"diretoria@alphafibra.com.br", "Situação de Mercado":"Guerra de preço agressiva / Perda de margem na região", "Produto Olli":"Olli Smart Home", "CNPJ":"31.862.534/0001-30", "Clientes Estimados":12000, "Ticket Médio (R$)":89.90, "Data Cadastro":"2026-01-10", "Score Conectividade":88, "Origem Lead":"Outbound LinkedIn"},
-    {"ID":"ISP-702", "Status Contato":"Não Chamado", "Provedor":"Beta Net Telecom", "Responsáveis":"Rodrigo Ramos", "Cargo":"CEO", "Localidade":"Blumenau - SC", "Telefone":"(47) 3211-5500", "Email":"rodrigo@betanet.net.br", "Situação de Mercado":"Churn alto detectado em relatórios ANATEL", "Produto Olli":"Olli Habita", "CNPJ":"14.552.112/0001-99", "Clientes Estimados":7500, "Ticket Médio (R$)":79.90, "Data Cadastro":"2026-02-15", "Score Conectividade":45, "Origem Lead":"Mapeamento ANATEL"},
-    {"ID":"ISP-703", "Status Contato":"Agendado (Reunião)", "Provedor":"Wave Conectividade", "Responsáveis":"Juliana Mendes", "Cargo":"Gerente de Marketing", "Localidade":"Maringá - PR", "Telefone":"(44) 99881-2233", "Email":"juliana@waveconect.com.br", "Situação de Mercado":"Estagnação de vendas / Sem serviços de valor agregado (SVA)", "Produto Olli":"Olli Smart Home", "CNPJ":"45.123.789/0001-02", "Clientes Estimados":24000, "Ticket Médio (R$)":110.00, "Data Cadastro":"2026-03-22", "Score Conectividade":92, "Origem Lead":"Inbound - Evento IXC"},
+    {
+        "ID": "ISP-701",
+        "Status Contato": "Qualificado",
+        "Provedor": "Alpha Fibra Telecom",
+        "Responsáveis": "Carlos Silva",
+        "Cargo": "Diretor de Operações",
+        "Localidade": "Chapecó - SC",
+        "Telefone": "(49) 3321-1000",
+        "Email": "diretoria@alphafibra.com.br",
+        "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região",
+        "Produto Olli": "Olli Smart Home",
+        "CNPJ": "31.862.534/0001-30",
+        "Clientes Estimados": 12000,
+        "Ticket Médio (R$)": 89.90,
+        "Data Cadastro": "2026-01-10",
+        "Score Conectividade": 88,
+        "Origem Lead": "Outbound LinkedIn",
+    },
+    {
+        "ID": "ISP-702",
+        "Status Contato": "Não Chamado",
+        "Provedor": "Beta Net Telecom",
+        "Responsáveis": "Rodrigo Ramos",
+        "Cargo": "CEO",
+        "Localidade": "Blumenau - SC",
+        "Telefone": "(47) 3211-5500",
+        "Email": "rodrigo@betanet.net.br",
+        "Situação de Mercado": "Churn alto detectado em relatórios ANATEL",
+        "Produto Olli": "Olli Habita",
+        "CNPJ": "14.552.112/0001-99",
+        "Clientes Estimados": 7500,
+        "Ticket Médio (R$)": 79.90,
+        "Data Cadastro": "2026-02-15",
+        "Score Conectividade": 45,
+        "Origem Lead": "Mapeamento ANATEL",
+    },
+    {
+        "ID": "ISP-703",
+        "Status Contato": "Agendado (Reunião)",
+        "Provedor": "Wave Conectividade",
+        "Responsáveis": "Juliana Mendes",
+        "Cargo": "Gerente de Marketing",
+        "Localidade": "Maringá - PR",
+        "Telefone": "(44) 99881-2233",
+        "Email": "juliana@waveconect.com.br",
+        "Situação de Mercado": "Estagnação de vendas / Sem serviços de valor agregado (SVA)",
+        "Produto Olli": "Olli Smart Home",
+        "CNPJ": "45.123.789/0001-02",
+        "Clientes Estimados": 24000,
+        "Ticket Médio (R$)": 110.00,
+        "Data Cadastro": "2026-03-22",
+        "Score Conectividade": 92,
+        "Origem Lead": "Inbound - Evento IXC",
+    },
 ]
 
 
@@ -164,27 +232,28 @@ def registrar_log(mensagem: str, usuario: str = "Sistema") -> None:
         pass
 
 
-@st.cache_data(show_spinner=False, ttl=60)
-def carregar_dados(modified_time: float) -> pd.DataFrame:
-    """Lê o CSV uma vez por versão do arquivo, acelerando reruns do Streamlit."""
-    del modified_time  # usado como chave do cache
+@st.cache_data(ttl=60, show_spinner=False)
+def carregar_dados() -> pd.DataFrame:
     if not os.path.exists(ARQUIVO_BANCO_DADOS):
         df = pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS)
         df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
         registrar_log("Base de dados inicializada.")
         return df
+
     try:
         df = pd.read_csv(ARQUIVO_BANCO_DADOS, encoding="utf-8")
     except (OSError, pd.errors.ParserError, UnicodeDecodeError) as erro:
         registrar_log(f"Falha ao carregar banco de dados: {erro}", "ERRO")
         return pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS)
+
     for coluna in COLUNAS:
         if coluna not in df.columns:
             df[coluna] = 0 if coluna in ("Clientes Estimados", "Score Conectividade") else "Não Informado"
+
     return df
 
 
-def gravar_dados(df: pd.DataFrame) -> bool:
+def salvar_dados(df: pd.DataFrame) -> bool:
     try:
         df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
         carregar_dados.clear()
@@ -197,9 +266,9 @@ def gravar_dados(df: pd.DataFrame) -> bool:
 def gerar_abordagem_ia(provedor: str, responsavel: str, dor: str, produto: str) -> str:
     return (
         f"Olá {responsavel}, percebi o posicionamento da {provedor} na região e o cenário atual "
-        f"envolvendo '{dor}'. O {produto} pode ajudar a fortalecer a percepção de valor, reduzir "
-        "churn e elevar o ticket médio. Podemos agendar uma conversa esta semana para avaliar "
-        "se essa solução faz sentido para sua operação?"
+        f"envolvendo '{dor}'. O {produto} pode ajudar a fortalecer a percepção de valor, reduzir churn "
+        "e elevar o ticket médio. Podemos agendar uma conversa esta semana para avaliar se essa solução "
+        "faz sentido para sua operação?"
     )
 
 
@@ -208,7 +277,12 @@ def mostrar_estado_vazio() -> None:
         """
         <div class="empty-state">
           <svg width="190" height="125" viewBox="0 0 190 125" role="img" aria-label="Pessoa caminhando com uma lanterna">
-            <defs><radialGradient id="emptyGlow"><stop stop-color="#FDE68A" stop-opacity=".65"/><stop offset="1" stop-color="#A855F7" stop-opacity="0"/></radialGradient></defs>
+            <defs>
+              <radialGradient id="emptyGlow">
+                <stop stop-color="#FDE68A" stop-opacity=".65"/>
+                <stop offset="1" stop-color="#A855F7" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
             <ellipse cx="96" cy="111" rx="72" ry="8" fill="#7C3AED" opacity=".15"/>
             <g class="walker">
               <path d="M101 68 L154 42 Q165 62 151 82 Z" fill="url(#emptyGlow)"/>
@@ -231,11 +305,19 @@ def mostrar_estado_vazio() -> None:
 # =====================================================================
 # DASHBOARD
 # =====================================================================
+if "termo_busca_provedor" not in st.session_state:
+    st.session_state.termo_busca_provedor = ""
+if "confirmar_exclusao" not in st.session_state:
+    st.session_state.confirmar_exclusao = None
+if "scroll_resultados" not in st.session_state:
+    st.session_state.scroll_resultados = False
+
+# Carrega e padroniza dados
 try:
-    mtime = os.path.getmtime(ARQUIVO_BANCO_DADOS) if os.path.exists(ARQUIVO_BANCO_DADOS) else 0.0
-except OSError:
-    mtime = 0.0
-df = carregar_dados(mtime)
+    df = carregar_dados().copy()
+except Exception:
+    df = pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS)
+
 df["Clientes Estimados"] = pd.to_numeric(df["Clientes Estimados"], errors="coerce").fillna(0)
 df["Score Conectividade"] = pd.to_numeric(df["Score Conectividade"], errors="coerce").fillna(0).clip(0, 100)
 
@@ -244,38 +326,43 @@ st.markdown('<div class="subtitle">SDR Intelligence Matrix &amp; Real-time Netwo
 
 k1, k2, k3 = st.columns(3)
 with k1:
-    st.markdown(f'<div class="kpi-container"><div class="kpi-title">Total Provedores</div><div class="kpi-value">{len(df)}</div></div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="kpi-container"><div class="kpi-title">Total Provedores</div><div class="kpi-value">{len(df)}</div></div>',
+        unsafe_allow_html=True,
+    )
 with k2:
-    st.markdown(f'<div class="kpi-container" style="border-left-color:#A855F7"><div class="kpi-title">Clientes Estimados</div><div class="kpi-value">{int(df["Clientes Estimados"].sum()):,}</div></div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="kpi-container" style="border-left-color:#A855F7"><div class="kpi-title">Clientes Estimados</div><div class="kpi-value">{int(df["Clientes Estimados"].sum()):,}</div></div>',
+        unsafe_allow_html=True,
+    )
 with k3:
     media = int(df["Score Conectividade"].mean()) if not df.empty else 0
-    st.markdown(f'<div class="kpi-container" style="border-left-color:#22D3EE"><div class="kpi-title">Score Médio</div><div class="kpi-value">{media}%</div></div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="kpi-container" style="border-left-color:#22D3EE"><div class="kpi-title">Score Médio</div><div class="kpi-value">{media}%</div></div>',
+        unsafe_allow_html=True,
+    )
 
 st.write("---")
 st.markdown("### 🔎 Busca de provedores")
 with st.form("form_busca_provedor", clear_on_submit=False):
-    campo_busca, coluna_buscar = st.columns([5, 1])
+    campo_busca, botao_busca = st.columns([5, 1])
     with campo_busca:
         termo_digitado = st.text_input(
             "Busca", placeholder="Nome do provedor ou cidade...", label_visibility="collapsed",
             key="campo_busca_provedor",
         )
-    with coluna_buscar:
+    with botao_busca:
         buscar = st.form_submit_button("🔍 Procurar")
 
-if "termo_busca_provedor" not in st.session_state:
-    st.session_state.termo_busca_provedor = ""
-if "confirmar_exclusao" not in st.session_state:
-    st.session_state.confirmar_exclusao = None
 if buscar:
     st.session_state.termo_busca_provedor = termo_digitado.strip()
     st.session_state.scroll_resultados = True
 
-c_busca, c_limpar = st.columns([5, 1])
-with c_busca:
+barra_busca, barra_limpar = st.columns([5, 1])
+with barra_busca:
     if st.session_state.termo_busca_provedor:
         st.caption(f"Busca ativa: {st.session_state.termo_busca_provedor}")
-with c_limpar:
+with barra_limpar:
     if st.button("Limpar", key="limpar_busca"):
         st.session_state.termo_busca_provedor = ""
         st.session_state.campo_busca_provedor = ""
@@ -290,26 +377,35 @@ if termo:
 else:
     resultados = df.copy()
 
-st.markdown('<div id="resultados-provedores"></div>', unsafe_allow_html=True)
-if st.session_state.pop("scroll_resultados", False):
+st.markdown('<div id="scroll-resultados"></div>', unsafe_allow_html=True)
+if st.session_state.scroll_resultados:
     components.html(
-        "<script>setTimeout(()=>{try{window.parent.document.getElementById('resultados-provedores')?.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}},180);</script>",
+        """
+        <script>
+          setTimeout(() => {
+            const el = window.parent.document.getElementById('scroll-resultados');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 120);
+        </script>
+        """,
         height=0,
     )
-st.markdown("### 🔮 Provedores")
+    st.session_state.scroll_resultados = False
 
+st.markdown("### 🔮 Provedores")
 if resultados.empty:
     mostrar_estado_vazio()
 else:
     for _, row in resultados.iterrows():
+        lead_id = str(row.get("ID", row.name))
         provedor_raw = str(row.get("Provedor", "Não informado"))
         responsavel_raw = str(row.get("Responsáveis", "Não informado"))
         dor_raw = str(row.get("Situação de Mercado", "Não informada"))
         produto_raw = str(row.get("Produto Olli", "Não informado"))
-        lead_id = str(row.get("ID", row.name))
         score = max(0, min(100, int(row.get("Score Conectividade", 0))))
 
         card_col, action_col = st.columns([4, 1])
+
         with card_col:
             provedor = escape(provedor_raw)
             status = escape(str(row.get("Status Contato", "Não informado")))
@@ -340,11 +436,15 @@ else:
                 """,
                 unsafe_allow_html=True,
             )
+
         with action_col:
             st.write("")
             if st.button("✨ Gerar abordagem", key=f"ia_{lead_id}"):
                 sugestao = gerar_abordagem_ia(provedor_raw, responsavel_raw, dor_raw, produto_raw)
-                st.markdown(f'<div class="ai-response"><b>Abordagem sugerida</b><br><br>{escape(sugestao)}</div>', unsafe_allow_html=True)
+                st.markdown(
+                    f'<div class="ai-response"><b>Abordagem sugerida</b><br><br>{escape(sugestao)}</div>',
+                    unsafe_allow_html=True,
+                )
                 registrar_log(f"Abordagem gerada para {provedor_raw}", "AI_ENGINE")
 
             if st.button("🗑️ Excluir lead", key=f"excluir_{lead_id}"):
@@ -356,8 +456,8 @@ else:
                 confirmar_col, cancelar_col = st.columns(2)
                 with confirmar_col:
                     if st.button("Confirmar", key=f"confirmar_{lead_id}"):
-                        restantes = df[df["ID"].astype(str) != lead_id].copy()
-                        if gravar_dados(restantes):
+                        novos = df[df["ID"].astype(str) != lead_id].copy()
+                        if salvar_dados(novos):
                             registrar_log(f"Lead {provedor_raw} ({lead_id}) excluído", "USUARIO")
                             st.session_state.confirmar_exclusao = None
                             st.success("Lead excluído.")
