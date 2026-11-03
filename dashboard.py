@@ -87,8 +87,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Mascote vetorial em alta resolução: o halo roxo acompanha o cursor e a
-# lanterna gira para apontar na direção do mouse.
+# Mascote menor, com caminhada horizontal seguindo o cursor, lanterna apontada
+# para o mouse e halo circular em gradiente arco-íris.
 components.html(
     """
     <script>
@@ -100,28 +100,38 @@ components.html(
         const style = doc.createElement('style');
         style.textContent = `
           #olli-pointer-light {
-            position: fixed; z-index: 2147483645; width: 190px; height: 190px;
+            position: fixed; z-index: 2147483645; width: 82px; height: 82px;
             left: 0; top: 0; pointer-events: none; opacity: 0;
             transform: translate(-50%, -50%); border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,.38) 0%, rgba(216,180,254,.35) 14%, rgba(168,85,247,.30) 34%, rgba(124,58,237,.17) 55%, transparent 74%);
-            filter: blur(5px); transition: opacity .16s ease;
+            background: conic-gradient(from 0deg, #ff3b8d, #ffb13b, #f8f443, #48f0a2, #36d9ff, #7a5cff, #e34dff, #ff3b8d);
+            filter: blur(12px) saturate(1.35); transition: opacity .16s ease;
+            animation: rainbow-spin 3.2s linear infinite;
+          }
+          #olli-pointer-light::after {
+            content: ''; position: absolute; inset: 13px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,.5), rgba(168,85,247,.16) 52%, transparent 76%);
           }
           #olli-walker {
-            position: fixed; z-index: 2147483644; left: 50%; bottom: 8px;
-            width: 176px; height: 200px; pointer-events: none; opacity: .92;
-            transform: translateX(-50%);
-            filter: drop-shadow(0 14px 22px rgba(124,58,237,.42));
-            animation: olli-walk 12s ease-in-out infinite alternate;
+            position: fixed; z-index: 2147483644; left: 50%; bottom: 5px;
+            width: 78px; height: 88px; pointer-events: none; opacity: .94;
+            transform: translateX(-50%); transition: left .22s ease-out;
+            filter: drop-shadow(0 5px 8px rgba(124,58,237,.42));
           }
           #olli-walker svg { width: 100%; height: 100%; overflow: visible; }
-          #olli-walker .character { transform-origin: center; animation: olli-float 2.8s ease-in-out infinite alternate; }
-          #olli-lantern { transform-box: view-box; transition: transform .12s ease-out; }
-          #olli-beam { opacity: .78; filter: drop-shadow(0 0 8px rgba(192,132,252,.95)); }
-          @keyframes olli-walk { from { margin-left: -32vw; } to { margin-left: 32vw; } }
-          @keyframes olli-float { from { translate: 0 0; } to { translate: 0 -4px; } }
+          #olli-character { transform-origin: 80px 90px; }
+          #olli-character.walking #olli-leg-back { animation: leg-back .28s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 67px 118px; }
+          #olli-character.walking #olli-leg-front { animation: leg-front .28s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 94px 118px; }
+          #olli-character.walking #olli-arm-free { animation: arm-swing .28s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 61px 77px; }
+          #olli-lantern { transition: transform .11s ease-out; }
+          #olli-beam { opacity: .82; filter: drop-shadow(0 0 5px rgba(192,132,252,.9)); }
+          @keyframes rainbow-spin { to { rotate: 360deg; } }
+          @keyframes leg-back { from { transform: rotate(-17deg); } to { transform: rotate(17deg); } }
+          @keyframes leg-front { from { transform: rotate(17deg); } to { transform: rotate(-17deg); } }
+          @keyframes arm-swing { from { transform: rotate(12deg); } to { transform: rotate(-12deg); } }
           @media (prefers-reduced-motion: reduce) {
-            #olli-walker, #olli-walker .character { animation: none !important; }
-            #olli-lantern { transition: none !important; }
+            #olli-pointer-light { animation: none !important; }
+            #olli-walker { transition: none !important; }
+            #olli-character.walking *, #olli-character.walking *::before { animation: none !important; }
           }
         `;
         doc.head.appendChild(style);
@@ -151,31 +161,30 @@ components.html(
                   <stop stop-color="#FEF3C7"/><stop offset=".5" stop-color="#FBBF24"/><stop offset="1" stop-color="#B45309"/>
                 </linearGradient>
               </defs>
-              <ellipse cx="80" cy="164" rx="37" ry="8" fill="#7C3AED" opacity=".22"/>
-              <g class="character">
-                <circle cx="111" cy="91" r="43" fill="url(#olliGlow)" opacity=".62"/>
-                <path d="M80 89 L151 58 Q157 91 136 119 Z" fill="url(#olliGlow)" opacity=".56"/>
+              <ellipse cx="80" cy="164" rx="33" ry="6" fill="#7C3AED" opacity=".2"/>
+              <g id="olli-character">
+                <circle cx="111" cy="91" r="35" fill="url(#olliGlow)" opacity=".48"/>
                 <!-- legs and boots -->
-                <path d="M68 120 L62 146 M96 120 L103 145" fill="none" stroke="#C4B5FD" stroke-width="10" stroke-linecap="round"/>
+                <path id="olli-leg-back" d="M68 118 L62 146" fill="none" stroke="#C4B5FD" stroke-width="10" stroke-linecap="round"/>
                 <path d="M61 145 L51 157 Q49 161 55 162 L72 162 Q77 161 74 156 L68 146 Z" fill="url(#olliBody)" stroke="#E9D5FF" stroke-width="1.5"/>
+                <path id="olli-leg-front" d="M96 118 L103 145" fill="none" stroke="#E9D5FF" stroke-width="10" stroke-linecap="round"/>
                 <path d="M102 144 L103 157 Q104 162 110 162 L126 162 Q131 160 127 156 L111 145 Z" fill="url(#olliBody)" stroke="#E9D5FF" stroke-width="1.5"/>
-                <!-- torso with shaded side and chest highlight -->
+                <!-- torso, shaded for a rounded 3D appearance -->
                 <path d="M60 67 Q78 56 99 67 L108 119 Q81 132 55 119 Z" fill="url(#olliClothes)" stroke="#DDD6FE" stroke-width="2"/>
                 <path d="M60 69 Q68 65 75 64 L73 123 L55 119 Z" fill="#DDD6FE" opacity=".24"/>
                 <path d="M78 77 Q85 72 94 77 L97 101 Q86 107 75 101 Z" fill="#A78BFA" opacity=".72"/>
                 <circle cx="86" cy="89" r="4" fill="#67E8F9" opacity=".9"/>
-                <!-- head -->
+                <!-- face and hair -->
                 <path d="M66 39 Q68 20 85 20 Q105 21 106 42 L103 61 Q98 72 84 72 Q69 69 65 57 Z" fill="url(#olliFace)" stroke="#F5D0FE" stroke-width="2"/>
                 <path d="M66 42 Q68 20 85 20 Q100 20 105 36 Q92 31 82 35 Q73 37 66 46 Z" fill="#8B5CF6"/>
                 <path d="M68 42 Q73 28 85 27" fill="none" stroke="#E9D5FF" stroke-width="3" stroke-linecap="round" opacity=".85"/>
                 <ellipse cx="77" cy="48" rx="2.2" ry="3" fill="#312E81"/>
                 <ellipse cx="94" cy="48" rx="2.2" ry="3" fill="#312E81"/>
                 <path d="M79 58 Q86 64 94 57" fill="none" stroke="#A855F7" stroke-width="2" stroke-linecap="round"/>
-                <!-- arms -->
-                <path d="M61 76 L47 97 L57 105 L70 88" fill="url(#olliBody)" stroke="#DDD6FE" stroke-width="2" stroke-linejoin="round"/>
+                <!-- free arm -->
+                <path id="olli-arm-free" d="M61 76 L47 97 L57 105 L70 88" fill="url(#olliBody)" stroke="#DDD6FE" stroke-width="2" stroke-linejoin="round"/>
+                <!-- arm holding lantern -->
                 <path d="M102 76 L117 88" fill="none" stroke="#C4B5FD" stroke-width="11" stroke-linecap="round"/>
-                <circle cx="119" cy="89" r="7" fill="url(#olliFace)" stroke="#DDD6FE" stroke-width="1.5"/>
-                <!-- lantern and beam rotate toward pointer -->
                 <g id="olli-lantern" transform="rotate(0 119 89)">
                   <path id="olli-beam" d="M120 85 L158 63 Q161 90 143 112 Z" fill="url(#olliGlow)"/>
                   <path d="M117 84 Q119 79 124 82 L131 91 L125 99 L118 94 Z" fill="url(#olliMetal)" stroke="#FEF3C7" stroke-width="2"/>
@@ -190,25 +199,43 @@ components.html(
 
         const light = doc.getElementById('olli-pointer-light');
         const walker = doc.getElementById('olli-walker');
+        const character = doc.getElementById('olli-character');
         const lantern = doc.getElementById('olli-lantern');
         const reduceMotion = window.parent.matchMedia('(prefers-reduced-motion: reduce)');
+        let lastX = window.parent.innerWidth / 2;
+        let stopWalkingTimer;
 
         doc.addEventListener('pointermove', (event) => {
           if (event.pointerType === 'touch') return;
           light.style.left = `${event.clientX}px`;
           light.style.top = `${event.clientY}px`;
-          light.style.opacity = reduceMotion.matches ? '.72' : '1';
+          light.style.opacity = '1';
 
-          // Direciona a lanterna do mascote ao ponto atual do cursor.
+          const dx = event.clientX - lastX;
+          if (Math.abs(dx) > 1) {
+            const facingRight = dx > 0;
+            character.setAttribute('transform', facingRight ? '' : 'translate(160 0) scale(-1 1)');
+            walker.style.left = `${Math.max(42, Math.min(window.parent.innerWidth - 42, event.clientX))}px`;
+            character.classList.add('walking');
+            window.parent.clearTimeout(stopWalkingTimer);
+            stopWalkingTimer = window.parent.setTimeout(() => character.classList.remove('walking'), 220);
+            lastX = event.clientX;
+          }
+
+          // Calcula o ângulo no sistema local, inclusive quando o mascote está virado.
           const box = walker.getBoundingClientRect();
           const scaleX = box.width / 160;
           const scaleY = box.height / 180;
-          const handX = box.left + 119 * scaleX;
+          const handX = box.left + (character.getAttribute('transform') ? (160 - 119) : 119) * scaleX;
           const handY = box.top + 89 * scaleY;
-          const angle = Math.atan2(event.clientY - handY, event.clientX - handX) * 180 / Math.PI;
+          const localDx = character.getAttribute('transform') ? handX - event.clientX : event.clientX - handX;
+          const angle = Math.atan2(event.clientY - handY, localDx) * 180 / Math.PI;
           lantern.setAttribute('transform', `rotate(${angle} 119 89)`);
         }, { passive: true });
         doc.addEventListener('pointerleave', () => { light.style.opacity = '0'; }, { passive: true });
+        window.parent.addEventListener('resize', () => {
+          walker.style.left = `${Math.max(42, Math.min(window.parent.innerWidth - 42, parseFloat(walker.style.left) || window.parent.innerWidth / 2))}px`;
+        }, { passive: true });
       } catch (_) { /* ignore */ }
     })();
     </script>
@@ -267,12 +294,10 @@ def registrar_log(mensagem: str, usuario: str = "Sistema") -> None:
 def normalizar_df(df: pd.DataFrame) -> pd.DataFrame:
     if df is None:
         return pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS)
-
     df = df.copy()
     for coluna in COLUNAS:
         if coluna not in df.columns:
             df[coluna] = 0 if coluna in ("Clientes Estimados", "Score Conectividade") else "Não Informado"
-
     df["Clientes Estimados"] = pd.to_numeric(df["Clientes Estimados"], errors="coerce").fillna(0)
     df["Score Conectividade"] = pd.to_numeric(df["Score Conectividade"], errors="coerce").fillna(0).clip(0, 100)
     return df
@@ -288,13 +313,11 @@ def carregar_dados() -> pd.DataFrame:
             pass
         registrar_log("Base de dados inicializada.")
         return normalizar_df(df)
-
     try:
         df = pd.read_csv(ARQUIVO_BANCO_DADOS, encoding="utf-8")
     except (OSError, pd.errors.ParserError, UnicodeDecodeError) as erro:
         registrar_log(f"Falha ao carregar banco de dados: {erro}", "ERRO")
         return normalizar_df(pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS))
-
     return normalizar_df(df)
 
 
@@ -427,8 +450,8 @@ else:
         responsavel_raw = str(row.get("Responsáveis", "Não informado"))
         dor_raw = str(row.get("Situação de Mercado", "Não informada"))
         produto_raw = str(row.get("Produto Olli", "Não informado"))
-        score = int(pd.to_numeric(row.get("Score Conectividade", 0), errors="coerce")) if pd.notna(row.get("Score Conectividade", 0)) else 0
-        score = max(0, min(100, score))
+        score_val = pd.to_numeric(row.get("Score Conectividade", 0), errors="coerce")
+        score = max(0, min(100, int(score_val))) if pd.notna(score_val) else 0
 
         card_col, action_col = st.columns([4, 1])
         with card_col:
