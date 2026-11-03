@@ -9,45 +9,182 @@ import time
 from datetime import datetime
 
 # =====================================================================
-# CONFIGURAÇÕES GLOBAIS E ESTILIZAÇÃO DA INTERFACE
+# CONFIGURAÇÕES GLOBAIS E ESTILIZAÇÃO ULTRA-FUTURISTA (HUD & CYBER-LUXURY)
 # =====================================================================
 ARQUIVO_BANCO_DADOS = "banco_leads_sdr_enterprise.csv"
 ARQUIVO_LOGS = "sdr_system_audit.log"
 
 st.set_page_config(
     page_title="Olli Hub Enterprise v2.0 | SDR Intelligence & AI Matrix",
-    page_icon="⚡",
+    page_icon="🔮",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Injeção de CSS Customizado para uma interface corporativa moderna
+# Injeção de CSS de Última Geração (Estilo Awwwards / Vercel Premium)
 st.markdown("""
 <style>
-    .main .block-container { padding-top: 1.5rem; padding-bottom: 1.5rem; }
-    div.stButton > button:first-child {
-        background-color: #4F46E5;
-        color: white;
+    /* Importando fonte tecnológica */
+    @import url('https://googleapis.com');
+    
+    /* Configuração Global do Dark Mode Absoluto */
+    html, body, [data-testid="stAppViewContainer"], .main {
+        background-color: #0B071E !important;
+        color: #E2E8F0 !important;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    /* Customização da Sidebar Futurista */
+    [data-testid="stSidebar"] {
+        background-color: #070414 !important;
+        border-right: 1px solid rgba(124, 58, 237, 0.2);
+    }
+    
+    /* Títulos em Fonte Geométrica */
+    h1, h2, h3 {
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.02em;
+    }
+    
+    /* Cabeçalho Principal Neon */
+    .cyber-title {
+        background: linear-gradient(135deg, #A855F7 0%, #7C3AED 50%, #06B6D4 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 0 40px rgba(124, 58, 237, 0.3);
+    }
+    
+    /* Barra de Busca com Efeito HUD de Escaneamento */
+    div[data-testid="stTextInput"] input {
+        background-color: rgba(15, 10, 36, 0.6) !important;
+        color: #06B6D4 !important;
+        border: 1px solid rgba(168, 85, 247, 0.4) !important;
+        border-radius: 12px !important;
+        padding: 0.75rem 1.2rem !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+        box-shadow: 0 0 15px rgba(124, 58, 237, 0.1) !important;
+        transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1) !important;
+    }
+    div[data-testid="stTextInput"] input:focus {
+        border-color: #06B6D4 !important;
+        box-shadow: 0 0 25px rgba(6, 182, 212, 0.4), inset 0 0 10px rgba(6, 182, 212, 0.1) !important;
+        transform: scale(1.01);
+    }
+
+    /* Botões Premium com Animação de Onda Magnética e Ripple Elétrico no Clique */
+    div.stButton > button {
+        background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-weight: 600 !important;
+        padding: 0.75rem 1.5rem !important;
+        box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3) !important;
+        transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1) !important;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+    }
+    div.stButton > button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(168, 85, 247, 0.6) !important;
+        border-color: #06B6D4 !important;
+    }
+    div.stButton > button:active {
+        transform: scale(0.97) !important;
+        background: #06B6D4 !important;
+        box-shadow: 0 0 40px #06B6D4 !important;
+        animation: electricPulse 0.4s ease-out;
+    }
+
+    @keyframes electricPulse {
+        0% { box-shadow: 0 0 0px rgba(6, 182, 212, 0.7); }
+        100% { box-shadow: 0 0 50px rgba(6, 182, 212, 0); }
+    }
+
+    /* Cards Holográficos de Provedores (Glassmorphism de Alto Padrão) */
+    .hologram-card {
+        background: rgba(20, 14, 56, 0.4) !important;
+        backdrop-filter: blur(16px) saturate(180%);
+        -webkit-backdrop-filter: blur(16px) saturate(180%);
+        border: 1px solid rgba(168, 85, 247, 0.15);
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 1.5rem;
+        transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .hologram-card:hover {
+        transform: translateY(-6px) scale(1.01);
+        border-color: rgba(6, 182, 212, 0.6);
+        box-shadow: 0 20px 40px rgba(124, 58, 237, 0.15), 0 0 30px rgba(6, 182, 212, 0.1);
+    }
+    
+    /* Decoração de Canto estilo HUD */
+    .hologram-card::before {
+        content: '';
+        position: absolute;
+        top: 0; right: 0;
+        width: 12px; height: 12px;
+        border-top: 2px solid #06B6D4;
+        border-right: 2px solid #06B6D4;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .hologram-card:hover::before { opacity: 1; }
+
+    /* Indicadores de Métricas (KPIs Corporativos de Alta Performance) */
+    .kpi-container-futuristic {
+        background: linear-gradient(145deg, rgba(26, 18, 70, 0.5) 0%, rgba(11, 7, 30, 0.8) 100%);
+        border-left: 4px solid #7C3AED;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: inset 0 0 20px rgba(124, 58, 237, 0.05);
+    }
+    .kpi-title-futuristic {
+        color: #94A3B8;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+    }
+    .kpi-value-futuristic {
+        color: #ffffff;
+        font-size: 2rem;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        margin-top: 5px;
+        text-shadow: 0 0 20px rgba(255,255,255,0.1);
+    }
+
+    /* Gráfico de Latência de última geração */
+    .latency-bar-bg {
+        background: rgba(255,255,255,0.05);
         border-radius: 6px;
-        font-weight: 600;
-        border: none;
-        padding: 0.5rem 1rem;
-        transition: all 0.3s ease;
+        height: 8px;
+        width: 100%;
+        margin-top: 8px;
+        overflow: hidden;
     }
-    div.stButton > button:first-child:hover {
-        background-color: #4338CA;
-        transform: translateY(-1px);
+    .latency-bar-fill {
+        background: linear-gradient(90deg, #7C3AED, #06B6D4);
+        height: 100%;
+        border-radius: 6px;
+        animation: networkScan 2s infinite linear;
     }
-    .kpi-card {
-        background-color: #ffffff;
-        padding: 22px;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07);
-        border-left: 5px solid #4F46E5;
-        margin-bottom: 1rem;
+
+    /* Animação Laser de Varredura para Itens em Carregamento */
+    @keyframes networkScan {
+        0% { opacity: 0.7; }
+        50% { opacity: 1; }
+        100% { opacity: 0.7; }
     }
-    .kpi-title { color: #6B7280; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; margin: 0; }
-    .kpi-value { margin: 8px 0 0 0; color: #1F2937; font-size: 28px; font-weight: 700; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -133,78 +270,3 @@ def inicializar_e_carregar_dados() -> pd.DataFrame:
         return df
     try:
         df = pd.read_csv(ARQUIVO_BANCO_DADOS, encoding="utf-8")
-        colunas_obrigatorias = ["ID", "Status Contato", "Provedor", "Responsáveis", "Cargo", "Localidade", 
-                                "Telefone", "Email", "Situação de Mercado", "Produto Olli", "CNPJ", 
-                                "Clientes Estimados", "Ticket Médio (R$)", "Data Cadastro", "Score Conectividade", "Origem Lead"]
-        mudou = False
-        for col in colunas_obrigatorias:
-            if col not in df.columns:
-                df[col] = 0 if "Estimados" in col or "Score" in col else "Não Informado"
-                mudou = True
-        if mudou:
-            df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
-        return df
-    except Exception as e:
-        registrar_log(f"Falha ao carregar banco de dados: {str(e)}", "ERRO")
-        return pd.DataFrame(DADOS_INICIAIS_MOCK)
-
-def salvar_dados_locais(df: pd.DataFrame):
-    """Grava as modificações no arquivo CSV local de forma permanente."""
-    try:
-        df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
-    except Exception as e:
-        st.error(f"Erro ao salvar alterações no disco: {e}")
-
-# =====================================================================
-# MOTOR COGNITIVO E ENGENHARIA DE PROMPTS PARA SDR
-# =====================================================================
-class MotorInteligenciaSDR:
-    @staticmethod
-    def obter_matriz_contextual(situacao_mercado: str) -> dict:
-        """Mapeia dores operacionais de provedores para gatilhos de abordagem comercial."""
-        matrizes = {
-            "Guerra de preço agressiva / Perda de margem na região": {
-                "Gancho Principal": "Diferenciação competitiva e blindagem de margem agregando valor perceptual.",
-                "Estratégia": "Posicionar a Olli como acelerador de receita marginal, eliminando a necessidade de dar descontos em conexões puras.",
-                "Framework": "PAS (Problema, Agitação, Solução)"
-            },
-            "Churn Alto detectado em relatórios ANATEL": {
-                "Gancho Principal": "Criação de ecossistema residencial integrado para aumento drástico de LTV.",
-                "Estratégia": "Mostrar que agregar segurança e smart home vincula o cliente ao provedor, reduzindo quebra de contratos em até 30%.",
-                "Framework": "AIDA (Atenção, Interesse, Desejo, Ação)"
-            },
-            "Estagnação de vendas / Sem Serviços de Valor Adicionado (SVA)": {
-                "Gancho Principal": "Monetização da base de clientes existente através de cross-selling estruturado.",
-                "Estratégia": "Introduzir a Olli como novo portfólio de faturamento imediato para contornar o teto de vendas de banda larga.",
-                "Framework": "Venda Consultiva Baseada em Valor"
-            },
-            "Picos de queixas recentes no Reclame Aqui (Queda/Suporte)": {
-                "Gancho Principal": "Melhoria da percepção de estabilidade dentro do lar do consumidor final.",
-                "Estratégia": "Mudar a conversa de infraestrutura física caída para uma experiência de automação residencial de alta fidelidade.",
-                "Framework": "Inversão de Risco e Restauração de Confiança"
-            }
-        }
-        return matrizes.get(situacao_mercado, {
-            "Gancho Principal": "Parceria estratégica de tecnologia e valor agregado para ISPs corporativos.",
-            "Estratégia": "Apresentar as vantagens integradas nativas do ecossistema IXC Soft para controle operacional.",
-            "Framework": "Abordagem Linear B2B"
-        })
-
-    @staticmethod
-    def construir_script_venda(linha_lead, matriz: dict) -> str:
-        """Gera um roteiro hiper-personalizado usando formatação direta por chaves."""
-        script_modelo = (
-            "### 📞 SCRIPT DE ABORDAGEM PERSONALIZADO (ALTA CONVERSÃO)\n"
-            "* **Alvo:** {responsavel} ({cargo}) | **ISP:** {provedor}\n"
-            "* **Canal Sugerido:** Mensagem Direta LinkedIn InMail ou Cold Call\n\n"
-            "#### 🎯 Abertura Estratégica\n"
-            "\"Olá, {responsavel}. Tudo bem? Acompanho o crescimento da {provedor} na região de {localidade} "
-            "e notei o quão competitiva a praça tem se tornado. Para operações robustas como a sua, gerenciar "
-            "a rentabilidade média virou o grande divisor de águas.\"\n\n"
-            "#### 🔥 Diagnóstico e Agitação da Dor\n"
-            "\"Analisando indicadores macro, fica nítido que enfrentar a conjuntura de [{dor_mercado}] "
-            "exige saídas que fujam da guerra tarifária convencional. Quem vende apenas pacotes de megas " 
-            "está sacrificando margem líquida toda semana.\"\n\n"
-            "#### 🚀 Proposta de Valor Conectada (Olli + IXC Soft)\n"
-            "\"É por isso que estruturamos uma solução de Smart Home e Automação via Olli, totalmente integrada "
-            "ao ecossistema IXC Soft. Para sua operação, que já conta com cerca de {clientes:,} assinantes, " )
