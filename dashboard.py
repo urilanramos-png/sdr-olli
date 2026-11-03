@@ -24,25 +24,30 @@ st.set_page_config(
 # Injeção de CSS de Última Geração (Estilo Awwwards / Vercel Premium)
 st.markdown("""
 <style>
+    /* Importando fonte tecnológica */
     @import url('https://googleapis.com');
     
+    /* Configuração Global do Dark Mode Absoluto */
     html, body, [data-testid="stAppViewContainer"], .main {
         background-color: #0B071E !important;
         color: #E2E8F0 !important;
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
     
+    /* Customização da Sidebar Futurista */
     [data-testid="stSidebar"] {
         background-color: #070414 !important;
         border-right: 1px solid rgba(124, 58, 237, 0.2);
     }
     
+    /* Títulos em Fonte Geométrica */
     h1, h2, h3 {
         font-family: 'Space Grotesk', sans-serif !important;
         font-weight: 700 !important;
         letter-spacing: -0.02em;
     }
     
+    /* Cabeçalho Principal Neon */
     .cyber-title {
         background: linear-gradient(135deg, #A855F7 0%, #7C3AED 50%, #06B6D4 100%);
         -webkit-background-clip: text;
@@ -53,6 +58,7 @@ st.markdown("""
         text-shadow: 0 0 40px rgba(124, 58, 237, 0.3);
     }
     
+    /* Barra de Busca com Efeito HUD de Escaneamento */
     div[data-testid="stTextInput"] input {
         background-color: rgba(15, 10, 36, 0.6) !important;
         color: #06B6D4 !important;
@@ -69,6 +75,7 @@ st.markdown("""
         transform: scale(1.01);
     }
 
+    /* Botões Premium com Animação de Onda Magnética e Ripple Elétrico no Clique */
     div.stButton > button {
         background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%) !important;
         color: #ffffff !important;
@@ -100,6 +107,7 @@ st.markdown("""
         100% { box-shadow: 0 0 50px rgba(6, 182, 212, 0); }
     }
 
+    /* Cards Holográficos de Provedores (Glassmorphism de Alto Padrão) */
     .hologram-card {
         background: rgba(20, 14, 56, 0.4) !important;
         backdrop-filter: blur(16px) saturate(180%);
@@ -118,6 +126,7 @@ st.markdown("""
         box-shadow: 0 20px 40px rgba(124, 58, 237, 0.15), 0 0 30px rgba(6, 182, 212, 0.1);
     }
 
+    /* Indicadores de Métricas (KPIs Corporativos de Alta Performance) */
     .kpi-container-futuristic {
         background: linear-gradient(145deg, rgba(26, 18, 70, 0.5) 0%, rgba(11, 7, 30, 0.8) 100%);
         border-left: 4px solid #7C3AED;
@@ -140,6 +149,7 @@ st.markdown("""
         margin-top: 5px;
     }
 
+    /* Gráfico de Latência de última geração */
     .latency-bar-bg {
         background: rgba(255,255,255,0.05);
         border-radius: 6px;
@@ -177,9 +187,7 @@ def registrar_log(mensagem: str, usuario: str = "Sistema"):
         with open(ARQUIVO_LOGS, "a", encoding="utf-8") as f:
             f.write(log_linha)
     except IOError:
-        pass
-
-# =====================================================================
+        pass# =====================================================================
 # CAMADA DE PERSISTÊNCIA DE DADOS (CRUD ENGINE)
 # =====================================================================
 DADOS_INICIAIS_MOCK = [
@@ -210,88 +218,126 @@ DADOS_INICIAIS_MOCK = [
 ]
 
 def inicializar_e_carregar_dados() -> pd.DataFrame:
+    """Garante a existência do banco de dados local com tratamento de integridade schema-level."""
     if not os.path.exists(ARQUIVO_BANCO_DADOS):
         df = pd.DataFrame(DADOS_INICIAIS_MOCK)
         df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
+        registrar_log("Base de dados corporativa inicializada com sucesso.")
         return df
-    return pd.read_csv(ARQUIVO_BANCO_DADOS, encoding="utf-8")
+    try:
+        df = pd.read_csv(ARQUIVO_BANCO_DADOS, encoding="utf-8")
+        colunas_obrigatorias = ["ID", "Status Contato", "Provedor", "Responsáveis", "Cargo", "Localidade", 
+                                "Telefone", "Email", "Situação de Mercado", "Produto Olli", "CNPJ", 
+                                "Clientes Estimados", "Ticket Médio (R$)", "Data Cadastro", "Score Conectividade", "Origem Lead"]
+        mudou = False
+        for col in colunas_obrigatorias:
+            if col not in df.columns:
+                df[col] = 0 if "Estimados" in col or "Score" in col else "Não Informado"
+                mudou = True
+        if mudou:
+            df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
+        return df
+    except Exception as e:
+        registrar_log(f"Falha ao carregar banco de dados: {str(e)}", "ERRO")
+        return pd.DataFrame(DADOS_INICIAIS_MOCK)
 
 # =====================================================================
 # MOTOR COGNITIVO E ENGENHARIA DE PROMPTS PARA SDR
 # =====================================================================
 def gerar_abordagem_ia(provedor: str, responsavel: str, dor: str, produto: str) -> str:
     """Simula o processamento do modelo LLM gerando uma cópia personalizada e cirúrgica de SDR."""
-    time.sleep(1.2)  # Simulação de latência de inferência
+    time.sleep(1.2)  # Simulação de latência de inferência quântica
     prompt_mockado = (
         f"Olá {responsavel}, percebi o posicionamento da {provedor} na região. "
         f"Sabendo que o cenário atual envolve '{dor}', desenhamos uma integração de ecossistema "
         f"com o {produto} para blindar sua base contra churn e elevar seu ticket médio. "
         f"Podemos abrir uma frequência de alinhamento estratégico esta semana?"
     )
-    return prompt_mockado
-
-# =====================================================================
+    return prompt_mockado# =====================================================================
 # EXECUÇÃO DO FRONT-END E RENDERIZAÇÃO CYBER-LUXURY
 # =====================================================================
 df_provedores = inicializar_e_carregar_dados()
 
-# Header Principal
+# Header Principal Futurista
 st.markdown('<div class="cyber-title">⚡ Olli Hub Enterprise v2.0</div>', unsafe_allow_html=True)
 st.markdown('<p style="color: #94A3B8; font-size:1.1rem; margin-top:-10px;">SDR Intelligence Matrix & Real-time Network Mapping</p>', unsafe_allow_html=True)
 
-# Grid de Indicadores
+# Grid de Indicadores em Linha Estilizada (KPI Matrix)
 kpi1, kpi2, kpi3 = st.columns(3)
 with kpi1:
-st.markdown(f'Total Provedores{len(df_provedores)}', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="kpi-container-futuristic">
+        <div class="kpi-title-futuristic">Total Provedores</div>
+        <div class="kpi-value-futuristic">{len(df_provedores)}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
 with kpi2:
-st.markdown(f'Market Share{df_provedores["Clientes Estimados"].sum():,}', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="kpi-container-futuristic" style="border-left-color: #A855F7;">
+        <div class="kpi-title-futuristic">Market Share</div>
+        <div class="kpi-value-futuristic">{df_provedores["Clientes Estimados"].sum():,}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
 with kpi3:
-st.markdown(f'Score Médio{int(df_provedores["Score Conectividade"].mean())}%', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="kpi-container-futuristic" style="border-left-color: #06B6D4;">
+        <div class="kpi-title-futuristic">Score Médio</div>
+        <div class="kpi-value-futuristic">{int(df_provedores["Score Conectividade"].mean())}%</div>
+    </div>
+    """, unsafe_allow_html=True)
+
 st.write("---")
 
-Seção de Busca HUD
-
+# Seção de Busca HUD
 st.markdown('### 🔍 Escaneamento de Rede e Filtro Inteligente')
 termo_busca = st.text_input("Digite o nome do Provedor ou Cidade para iniciar a varredura...", placeholder="Ex: Alpha Fibra")
+
 df_filtrado = df_provedores[df_provedores["Provedor"].str.contains(termo_busca, case=False, na=False)] if termo_busca else df_provedores
 
-Renderizando os Cards Holográficos
+# Renderizando os Cards Holográficos
+st.markdown('### 🔮 Mapeamento de Cartões Holográficos')
 
 for index, row in df_filtrado.iterrows():
-col_card, col_action = st.columns([3, 1])
-with col_card:
-st.markdown(f"""
-
-
-{row['Provedor']}
-{row['ID']}
-
-
-📍 LOCALIDADE{row['Localidade']}
-🎯 PRODUTO OLLI{row['Produto Olli']}
-💼 RESPONSÁVEL{row['Responsáveis']} ({row['Cargo']})
-
-
-⚠️ SITUAÇÃO DE MERCADO / DOR
-{row['Situação de Mercado']}
-
-
-SCORE DE SAÚDE DA REDE ({row['Score Conectividade']}%)
-
-
-
-""", unsafe_allow_html=True)
-with col_action:
-st.write("", unsafe_allow_html=True)
-if st.button("Disparar IA Matrix", key=f"btn-{row['ID']}"):
-with st.spinner("🤖 Processando camadas cognitivas..."):
-abordagem = gerar_abordagem_ia(row['Provedor'], row['Responsáveis'], row['Situação de Mercado'], row['Produto Olli'])
-st.markdown(f"""
-
-🛰️ Abordagem Preditiva Gerada:
-
-
-{abordagem}
-
-""", unsafe_allow_html=True)
-registrar_log(f"Abordagem cognitiva calculada para {row['Provedor']}", "AI_ENGINE")
+    # Divisão balanceada para caber o Card e o Botão de Disparo perfeitamente ao lado
+    col_card, col_action = st.columns([4, 1])
+    
+    with col_card:
+        st.markdown(f"""
+        <div class="hologram-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #06B6D4; font-family: 'Space Grotesk', sans-serif; font-weight:700; font-size:1.3rem;">{row['Provedor']}</span>
+                <span style="background: rgba(124, 58, 237, 0.2); color: #A855F7; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid rgba(168,85,247,0.3); font-weight:600;">{row['ID']}</span>
+            </div>
+            <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                <div><span style="color: #64748B; font-size: 0.75rem; display:block;">📍 LOCALIDADE</span><span style="color: #E2E8F0; font-weight:600;">{row['Localidade']}</span></div>
+                <div><span style="color: #64748B; font-size: 0.75rem; display:block;">🎯 PRODUTO OLLI</span><span style="color: #A855F7; font-weight:700;">{row['Produto Olli']}</span></div>
+                <div><span style="color: #64748B; font-size: 0.75rem; display:block;">💼 RESPONSÁVEL</span><span style="color: #E2E8F0; font-weight:600;">{row['Responsáveis']} ({row['Cargo']})</span></div>
+            </div>
+            <div style="margin-top: 12px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; border-left: 3px solid #7C3AED;">
+                <span style="color: #64748B; font-size: 0.75rem; display:block;">⚠️ SITUAÇÃO DE MERCADO / DOR</span>
+                <span style="color: #CBD5E1; font-size: 0.9rem;">{row['Situação de Mercado']}</span>
+            </div>
+            <div style="margin-top: 15px;">
+                <span style="color: #64748B; font-size: 0.75rem;">SCORE DE SAÚDE DA REDE ({row['Score Conectividade']}%)</span>
+                <div class="latency-bar-bg"><div class="latency-bar-fill" style="width: {row['Score Conectividade']}%"></div></div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col_action:
+        # Espaçador transparente para alinhar perfeitamente o botão com o corpo do card
+        st.write("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+        if st.button("Disparar IA Matrix", key=f"btn-{row['ID']}"):
+            with st.spinner("🤖 Processando camadas cognitivas..."):
+                abordagem = gerar_abordagem_ia(row['Provedor'], row['Responsáveis'], row['Situação de Mercado'], row['Produto Olli'])
+            
+            # Resultado com a caixa estilizada de resposta IA
+            st.markdown(f"""
+            <div class="ai-matrix-response">
+                <strong>🛰️ Abordagem Preditiva Gerada:</strong><br><br>
+                {abordagem}
+            </div>
+            """, unsafe_allow_html=True)
+            registrar_log(f"Abordagem cognitiva calculada para {row['Provedor']}", "AI_ENGINE")
