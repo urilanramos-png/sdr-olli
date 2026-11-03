@@ -86,9 +86,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Mascote mais natural e realista, pequeno, seguindo o mouse em toda a tela,
-# com caminhada lenta e lanterna apontando ao alvo. O cursor emite brilho roxo
-# em forma de estrela cadente.
+# Mascote em SVG sombreado: segue o cursor com atraso e velocidade limitados,
+# anima os passos apenas enquanto caminha e mira com a lanterna quando alcança.
+# Um rastro roxo com cintilação acompanha movimentos rápidos do mouse.
 components.html(
     """
     <script>
@@ -96,57 +96,41 @@ components.html(
       try {
         const win = window.parent;
         const doc = win.document;
-        if (doc.getElementById('olli-effects')) return;
+        if (win.__olliEffectsCleanup) win.__olliEffectsCleanup();
+        doc.getElementById('olli-effects')?.remove();
+        doc.getElementById('olli-effects-style')?.remove();
 
         const style = doc.createElement('style');
+        style.id = 'olli-effects-style';
         style.textContent = `
-          #olli-effects {
-            position: fixed; inset: 0; z-index: 2147483644; pointer-events: none;
-            overflow: visible;
-          }
+          #olli-effects { position: fixed; inset: 0; z-index: 2147483644; pointer-events: none; overflow: visible; }
+          #olli-star-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
           #olli-pointer-glow {
-            position: fixed; width: 36px; height: 36px; left: 0; top: 0; opacity: 0;
-            transform: translate(-50%, -50%); border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,.9) 0%, rgba(216,180,254,.88) 12%, rgba(168,85,247,.62) 34%, rgba(124,58,237,.25) 56%, rgba(124,58,237,0) 80%);
-            filter: blur(3px) saturate(1.5);
-            pointer-events: none; will-change: left, top, opacity;
-            transition: opacity .12s ease;
-            animation: cursorPulse 2.1s ease-in-out infinite alternate;
-          }
-          #olli-pointer-trail {
-            position: fixed; left: 0; top: 0; width: 120px; height: 14px; opacity: 0;
-            transform-origin: 100% 50%; border-radius: 999px; pointer-events: none;
-            background: linear-gradient(90deg, rgba(124,58,237,0) 0%, rgba(192,132,252,.25) 18%, rgba(168,85,247,.7) 58%, rgba(255,255,255,.98) 100%);
-            filter: blur(2px) drop-shadow(0 0 7px rgba(168,85,247,.95));
-            will-change: left, top, transform, opacity;
-            transition: opacity .12s ease;
-          }
-          #olli-pointer-trail::after {
-            content: ''; position: absolute; right: 0; top: 3px; width: 11px; height: 8px; border-radius: 50%;
-            background: rgba(255,255,255,.94); box-shadow: 0 0 10px rgba(192,132,252,.9), 0 0 18px rgba(168,85,247,.8);
+            position: fixed; width: 34px; height: 34px; left: 0; top: 0; opacity: 0;
+            transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none;
+            background: radial-gradient(circle, rgba(255,255,255,.96) 0%, rgba(216,180,254,.9) 15%, rgba(168,85,247,.62) 38%, rgba(124,58,237,.22) 63%, transparent 80%);
+            filter: blur(2px) drop-shadow(0 0 9px rgba(168,85,247,.9));
+            transition: opacity .16s ease; will-change: left, top, opacity;
           }
           #olli-walker {
-            position: fixed; left: 40px; top: 40px; width: 72px; height: 90px;
-            opacity: 0.98; pointer-events: none; will-change: left, top;
-            filter: drop-shadow(0 7px 10px rgba(124,58,237,.35));
+            position: fixed; left: 40px; top: 40px; width: 66px; height: 82px;
+            opacity: .98; pointer-events: none; will-change: left, top;
+            filter: drop-shadow(0 5px 8px rgba(91,33,182,.42));
           }
-          #olli-walker svg { width: 100%; height: 100%; overflow: visible; }
-          #olli-sprite { transform-box: view-box; transform-origin: 58px 78px; }
-          #olli-sprite.walking #olli-leg-a { animation: olli-step-a .27s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 44px 103px; }
-          #olli-sprite.walking #olli-leg-b { animation: olli-step-b .27s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 68px 102px; }
-          #olli-sprite.walking #olli-arm-free { animation: olli-arm-swing .27s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 42px 65px; }
-          #olli-lantern { transform-box: view-box; transition: transform .12s ease-out; }
-          #olli-lantern-beam { opacity: .82; filter: drop-shadow(0 0 7px rgba(192,132,252,.9)); }
-          @keyframes cursorPulse {
-            0% { transform: translate(-50%, -50%) scale(0.92); }
-            100% { transform: translate(-50%, -50%) scale(1.12); }
-          }
-          @keyframes olli-step-a { from { transform: rotate(-17deg); } to { transform: rotate(18deg); } }
-          @keyframes olli-step-b { from { transform: rotate(16deg); } to { transform: rotate(-18deg); } }
+          #olli-walker svg { display: block; width: 100%; height: 100%; overflow: visible; }
+          #olli-sprite { transform-box: view-box; transform-origin: 60px 75px; }
+          #olli-sprite.walking #olli-leg-a { animation: olli-step-a .42s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 49px 103px; }
+          #olli-sprite.walking #olli-leg-b { animation: olli-step-b .42s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 69px 103px; }
+          #olli-sprite.walking #olli-arm-free { animation: olli-arm-swing .42s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 43px 65px; }
+          #olli-sprite.walking { animation: olli-body-bob .42s ease-in-out infinite alternate; }
+          #olli-lantern { transform-box: view-box; transition: transform .18s ease-out; }
+          #olli-lantern-beam { opacity: .84; filter: drop-shadow(0 0 6px rgba(192,132,252,.95)); }
+          @keyframes olli-step-a { from { transform: rotate(-20deg); } to { transform: rotate(20deg); } }
+          @keyframes olli-step-b { from { transform: rotate(18deg); } to { transform: rotate(-20deg); } }
           @keyframes olli-arm-swing { from { transform: rotate(12deg); } to { transform: rotate(-12deg); } }
+          @keyframes olli-body-bob { from { translate: 0 0; } to { translate: 0 -1.5px; } }
           @media (prefers-reduced-motion: reduce) {
-            #olli-pointer-glow { animation: none !important; }
-            #olli-sprite.walking *, #olli-sprite.walking *::before { animation: none !important; }
+            #olli-sprite.walking, #olli-sprite.walking * { animation: none !important; }
             #olli-lantern { transition: none !important; }
           }
         `;
@@ -155,52 +139,56 @@ components.html(
         const wrap = doc.createElement('div');
         wrap.id = 'olli-effects';
         wrap.innerHTML = `
-          <div id="olli-pointer-trail" aria-hidden="true"></div>
+          <canvas id="olli-star-canvas" aria-hidden="true"></canvas>
           <div id="olli-pointer-glow" aria-hidden="true"></div>
           <div id="olli-walker" aria-hidden="true">
             <svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" role="presentation">
               <defs>
-                <radialGradient id="olliFace" cx="32%" cy="24%" r="78%">
+                <radialGradient id="olli-face" cx="32%" cy="24%" r="78%">
                   <stop stop-color="#FFFDF8"/><stop offset=".62" stop-color="#E9D5FF"/><stop offset="1" stop-color="#A78BFA"/>
                 </radialGradient>
-                <linearGradient id="olliCoat" x1="0" y1="0" x2="1" y2="1">
-                  <stop stop-color="#DDD6FE"/><stop offset=".42" stop-color="#8B5CF6"/><stop offset="1" stop-color="#3B1A72"/>
+                <linearGradient id="olli-coat" x1="0" y1="0" x2="1" y2="1">
+                  <stop stop-color="#E9D5FF"/><stop offset=".42" stop-color="#8B5CF6"/><stop offset="1" stop-color="#32145F"/>
                 </linearGradient>
-                <linearGradient id="olliSleeve" x1="0" y1="0" x2="1" y2="1">
-                  <stop stop-color="#E9D5FF"/><stop offset="1" stop-color="#7C3AED"/>
+                <linearGradient id="olli-sleeve" x1="0" y1="0" x2="1" y2="1">
+                  <stop stop-color="#E9D5FF"/><stop offset="1" stop-color="#6D28D9"/>
                 </linearGradient>
-                <linearGradient id="olliBoot" x1="0" y1="0" x2="0" y2="1">
-                  <stop stop-color="#C4B5FD"/><stop offset="1" stop-color="#4C1D95"/>
+                <linearGradient id="olli-boot" x1="0" y1="0" x2="0" y2="1">
+                  <stop stop-color="#C4B5FD"/><stop offset="1" stop-color="#3B1A72"/>
                 </linearGradient>
-                <radialGradient id="olliLanternGlow">
-                  <stop stop-color="#FFF7CC" stop-opacity=".96"/><stop offset=".45" stop-color="#FDE68A" stop-opacity=".65"/><stop offset="1" stop-color="#A855F7" stop-opacity="0"/>
+                <radialGradient id="olli-lamp-glow">
+                  <stop stop-color="#FFF7CC" stop-opacity=".98"/><stop offset=".42" stop-color="#FDE68A" stop-opacity=".6"/><stop offset="1" stop-color="#A855F7" stop-opacity="0"/>
                 </radialGradient>
               </defs>
               <ellipse cx="60" cy="132" rx="25" ry="4" fill="#8B5CF6" opacity=".22"/>
               <g id="olli-sprite">
+                <!-- legs, articulated boots and coat -->
                 <path id="olli-leg-a" d="M49 103 L45 119" stroke="#BBA6F5" stroke-width="7" stroke-linecap="round"/>
                 <path id="olli-leg-b" d="M69 103 L74 119" stroke="#D8CCFA" stroke-width="7" stroke-linecap="round"/>
-                <path d="M45 117 Q39 120 38 126 Q46 129 55 126 L53 120 Z" fill="url(#olliBoot)" stroke="#D8B4FE" stroke-width=".8"/>
-                <path d="M73 117 Q71 123 75 127 Q84 129 90 125 L84 120 Z" fill="url(#olliBoot)" stroke="#D8B4FE" stroke-width=".8"/>
-                <path d="M42 57 Q59 48 76 57 L81 103 Q61 111 39 103 Z" fill="url(#olliCoat)" stroke="#DDD6FE" stroke-width="1.3"/>
-                <path d="M43 59 Q49 55 54 55 L52 106 L39 103 Z" fill="#F5D0FE" opacity=".22"/>
-                <path d="M57 57 L61 103 M69 58 L74 101" stroke="#E9D5FF" stroke-opacity=".35" stroke-width="1"/>
-                <path d="M54 68 L68 68 L67 87 Q61 91 55 87 Z" fill="#4C1D95" opacity=".48"/>
+                <path d="M45 117 Q39 120 38 126 Q46 129 55 126 L53 120 Z" fill="url(#olli-boot)" stroke="#D8B4FE" stroke-width=".8"/>
+                <path d="M73 117 Q71 123 75 127 Q84 129 90 125 L84 120 Z" fill="url(#olli-boot)" stroke="#D8B4FE" stroke-width=".8"/>
+                <path d="M42 57 Q59 48 76 57 L81 103 Q61 111 39 103 Z" fill="url(#olli-coat)" stroke="#DDD6FE" stroke-width="1.3"/>
+                <path d="M43 59 Q49 55 54 55 L52 106 L39 103 Z" fill="#F5D0FE" opacity=".2"/>
+                <path d="M57 57 L61 103 M69 58 L74 101" stroke="#E9D5FF" stroke-opacity=".34" stroke-width="1"/>
+                <path d="M54 68 L68 68 L67 87 Q61 91 55 87 Z" fill="#32145F" opacity=".48"/>
                 <circle cx="61" cy="76" r="2.2" fill="#67E8F9"/>
-                <path d="M55 97 Q61 100 68 97" stroke="#F5D0FE" stroke-opacity=".72" stroke-width="1" fill="none"/>
-                <path d="M46 35 Q47 20 60 19 Q76 19 78 35 L75 52 Q71 61 60 61 Q48 59 45 49 Z" fill="url(#olliFace)" stroke="#F5D0FE" stroke-width="1.3"/>
-                <path d="M46 38 Q44 22 58 17 Q73 15 79 31 Q70 27 64 30 Q55 30 47 42 Z" fill="#5B2A9D"/>
-                <path d="M49 34 Q54 23 64 22" stroke="#E9D5FF" stroke-opacity=".85" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <path d="M55 97 Q61 100 68 97" stroke="#F5D0FE" stroke-opacity=".7" stroke-width="1" fill="none"/>
+                <!-- face, hair, subtle highlights and eyes -->
+                <path d="M46 35 Q47 20 60 19 Q76 19 78 35 L75 52 Q71 61 60 61 Q48 59 45 49 Z" fill="url(#olli-face)" stroke="#F5D0FE" stroke-width="1.3"/>
+                <path d="M46 38 Q44 22 58 17 Q73 15 79 31 Q70 27 64 30 Q55 30 47 42 Z" fill="#512583"/>
+                <path d="M49 34 Q54 23 64 22" stroke="#E9D5FF" stroke-opacity=".8" stroke-width="2" fill="none" stroke-linecap="round"/>
                 <ellipse cx="54" cy="41" rx="1.7" ry="2.4" fill="#30204F"/>
                 <ellipse cx="68" cy="40" rx="1.7" ry="2.4" fill="#30204F"/>
                 <circle cx="54.5" cy="40.5" r=".55" fill="#FFF"/><circle cx="68.5" cy="39.5" r=".55" fill="#FFF"/>
                 <path d="M57 49 Q61 52 66 48" stroke="#A855F7" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-                <path id="olli-arm-free" d="M43 65 L34 82 L41 86 L51 72" fill="none" stroke="url(#olliSleeve)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- free arm swings against the walking legs -->
+                <path id="olli-arm-free" d="M43 65 L34 82 L41 86 L51 72" fill="none" stroke="url(#olli-sleeve)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M34 81 L31 86" stroke="#F1EAFE" stroke-width="5" stroke-linecap="round"/>
-                <path d="M75 64 Q83 69 88 77" fill="none" stroke="url(#olliSleeve)" stroke-width="8" stroke-linecap="round"/>
+                <!-- lantern arm and glowing lantern -->
+                <path d="M75 64 Q83 69 88 77" fill="none" stroke="url(#olli-sleeve)" stroke-width="8" stroke-linecap="round"/>
                 <circle cx="89" cy="78" r="3.4" fill="#F1EAFE" stroke="#C4B5FD" stroke-width=".8"/>
                 <g id="olli-lantern" transform="rotate(0 91 78)">
-                  <path id="olli-lantern-beam" d="M93 75 L119 58 Q121 79 108 98 Z" fill="url(#olliLanternGlow)"/>
+                  <path id="olli-lantern-beam" d="M93 75 L119 58 Q121 79 108 98 Z" fill="url(#olli-lamp-glow)"/>
                   <path d="M88 74 Q89 69 94 71 L99 78 L95 84 L89 81 Z" fill="#FBBF24" stroke="#FFF0B3" stroke-width="1.3"/>
                   <path d="M89 73 L94 70 L98 74" fill="none" stroke="#FFF9DB" stroke-width="1.2" stroke-linecap="round"/>
                   <circle cx="95" cy="78" r="2.5" fill="#FFFBEA"/>
@@ -216,92 +204,199 @@ components.html(
         const sprite = doc.getElementById('olli-sprite');
         const lantern = doc.getElementById('olli-lantern');
         const glow = doc.getElementById('olli-pointer-glow');
-        const trail = doc.getElementById('olli-pointer-trail');
+        const canvas = doc.getElementById('olli-star-canvas');
+        const ctx = canvas.getContext('2d');
         const reduceMotion = win.matchMedia('(prefers-reduced-motion: reduce)');
-        const size = { width: 72, height: 90 };
-
-        let pointer = { x: win.innerWidth * 0.5, y: win.innerHeight * 0.68 };
-        let target = { x: pointer.x, y: pointer.y };
-        let position = { x: pointer.x - 30, y: pointer.y - 70 };
+        const width = 66;
+        const height = 82;
+        const cursor = { x: win.innerWidth * .55, y: win.innerHeight * .55 };
+        const position = { x: cursor.x - 125, y: cursor.y - 75 };
+        const velocity = { x: 0, y: 0 };
+        const trail = [];
         let lastPointer = null;
-        let facing = 1;
-        let trailTimer = 0;
-        let walkTimer = 0;
+        let lastDirection = 1;
+        let lastTime = 0;
+        let visible = false;
+        let cleanup = () => {};
 
         const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
-        doc.addEventListener('pointermove', (event) => {
-          if (event.pointerType === 'touch') return;
+        function resizeCanvas() {
+          const dpr = Math.min(win.devicePixelRatio || 1, 2);
+          canvas.width = Math.round(win.innerWidth * dpr);
+          canvas.height = Math.round(win.innerHeight * dpr);
+          canvas.style.width = `${win.innerWidth}px`;
+          canvas.style.height = `${win.innerHeight}px`;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        resizeCanvas();
 
-          const x = event.clientX;
-          const y = event.clientY;
-          pointer = { x, y };
-          target = { x: x, y: y };
-          glow.style.left = `${x}px`;
-          glow.style.top = `${y}px`;
+        function onPointerMove(event) {
+          if (event.pointerType === 'touch') return;
+          const now = performance.now();
+          const point = { x: event.clientX, y: event.clientY, t: now };
+          cursor.x = point.x;
+          cursor.y = point.y;
+          visible = true;
+          glow.style.left = `${point.x}px`;
+          glow.style.top = `${point.y}px`;
           glow.style.opacity = '1';
 
           if (lastPointer) {
-            const dx = x - lastPointer.x;
-            const dy = y - lastPointer.y;
-            const dist = Math.hypot(dx, dy);
-            if (dist > 1) {
-              facing = dx >= 0 ? 1 : -1;
-              const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-              trail.style.left = `${x}px`;
-              trail.style.top = `${y}px`;
-              trail.style.transform = `translate(-100%, -50%) rotate(${angle}deg)`;
-              trail.style.opacity = '1';
-              clearTimeout(trailTimer);
-              trailTimer = setTimeout(() => { trail.style.opacity = '0'; }, 180);
-              sprite.classList.add('walking');
-              clearTimeout(walkTimer);
-              walkTimer = setTimeout(() => sprite.classList.remove('walking'), 260);
+            const dx = point.x - lastPointer.x;
+            const dy = point.y - lastPointer.y;
+            const distance = Math.hypot(dx, dy);
+            const dt = Math.max(8, now - lastPointer.t);
+            if (Math.abs(dx) > 1) lastDirection = dx > 0 ? 1 : -1;
+            if (distance > 1) {
+              // Keep cursor samples to paint a fading, intermittently twinkling comet tail.
+              const steps = Math.min(7, Math.max(1, Math.ceil(distance / 24)));
+              for (let i = 1; i <= steps; i++) {
+                const ratio = i / steps;
+                trail.push({
+                  x: lastPointer.x + dx * ratio,
+                  y: lastPointer.y + dy * ratio,
+                  t: now,
+                  life: 360 + Math.random() * 260,
+                  size: 1.2 + Math.random() * 2.5,
+                  phase: Math.random() * Math.PI * 2,
+                });
+              }
+              if (distance / dt > .18) sprite.classList.add('walking');
             }
           }
+          lastPointer = point;
+        }
 
-          lastPointer = { x, y };
-        }, { passive: true });
-
-        doc.addEventListener('pointerleave', () => {
+        function onPointerLeave() {
+          visible = false;
           glow.style.opacity = '0';
-          trail.style.opacity = '0';
-        }, { passive: true });
+        }
 
-        function step() {
-          const damp = reduceMotion.matches ? 0.28 : 0.1;
-          const targetX = clamp(target.x - 30, 8, win.innerWidth - size.width - 8);
-          const targetY = clamp(target.y - 80, 8, win.innerHeight - size.height - 8);
+        function drawTrail(now) {
+          ctx.clearRect(0, 0, win.innerWidth, win.innerHeight);
+          for (let i = trail.length - 1; i >= 0; i--) {
+            const particle = trail[i];
+            const age = now - particle.t;
+            const progress = age / particle.life;
+            if (progress >= 1) {
+              trail.splice(i, 1);
+              continue;
+            }
+            const flicker = .48 + .52 * Math.abs(Math.sin(now * .025 + particle.phase));
+            const alpha = (1 - progress) * flicker;
+            const radius = particle.size * (1 - progress * .45);
+            const gradient = ctx.createRadialGradient(particle.x, particle.y, 0, particle.x, particle.y, radius * 5);
+            gradient.addColorStop(0, `rgba(255,255,255,${alpha})`);
+            gradient.addColorStop(.24, `rgba(216,180,254,${alpha * .95})`);
+            gradient.addColorStop(.58, `rgba(168,85,247,${alpha * .7})`);
+            gradient.addColorStop(1, 'rgba(124,58,237,0)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, radius * 5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          if (visible && lastPointer && trail.length) {
+            const newest = trail[trail.length - 1];
+            const dx = cursor.x - newest.x;
+            const dy = cursor.y - newest.y;
+            const length = Math.hypot(dx, dy);
+            if (length > 2) {
+              const tail = ctx.createLinearGradient(cursor.x, cursor.y, cursor.x - dx * 3, cursor.y - dy * 3);
+              tail.addColorStop(0, 'rgba(255,255,255,.88)');
+              tail.addColorStop(.25, 'rgba(192,132,252,.68)');
+              tail.addColorStop(1, 'rgba(124,58,237,0)');
+              ctx.strokeStyle = tail;
+              ctx.lineWidth = 3;
+              ctx.lineCap = 'round';
+              ctx.shadowColor = '#A855F7';
+              ctx.shadowBlur = 12;
+              ctx.beginPath();
+              ctx.moveTo(cursor.x, cursor.y);
+              ctx.lineTo(cursor.x - dx * 3, cursor.y - dy * 3);
+              ctx.stroke();
+              ctx.shadowBlur = 0;
+            }
+          }
+        }
 
-          position.x += (targetX - position.x) * damp;
-          position.y += (targetY - position.y) * damp;
+        function animate(now) {
+          const dt = lastTime ? Math.min((now - lastTime) / 1000, .04) : 1 / 60;
+          lastTime = now;
+          drawTrail(now);
 
+          // A moving target stays well ahead of the explorer; when it stops,
+          // the target settles nearby so Olli can approach and aim the lantern.
+          const cursorSpeed = lastPointer && now - lastPointer.t < 90
+            ? Math.hypot(cursor.x - (lastPointer.x || cursor.x), cursor.y - (lastPointer.y || cursor.y)) / Math.max(dt, .016)
+            : 0;
+          const moving = sprite.classList.contains('walking') || cursorSpeed > 35;
+          let targetX;
+          let targetY;
+          if (moving && lastPointer) {
+            const lookAhead = Math.min(110, cursorSpeed * .12);
+            targetX = cursor.x - lastDirection * (88 + lookAhead);
+            targetY = cursor.y + 24;
+          } else {
+            targetX = cursor.x - lastDirection * 62;
+            targetY = cursor.y + 8;
+          }
+          targetX = clamp(targetX, 10, win.innerWidth - width - 10);
+          targetY = clamp(targetY, 10, win.innerHeight - height - 10);
+
+          const dx = targetX - position.x;
+          const dy = targetY - position.y;
+          const distance = Math.hypot(dx, dy);
+          const maxSpeed = reduceMotion.matches ? 115 : (moving ? 105 : 72);
+          const desiredVX = distance > 2 ? (dx / distance) * Math.min(maxSpeed, distance * 1.45) : 0;
+          const desiredVY = distance > 2 ? (dy / distance) * Math.min(maxSpeed, distance * 1.45) : 0;
+          const acceleration = reduceMotion.matches ? 7 : 2.6;
+          velocity.x += (desiredVX - velocity.x) * Math.min(1, acceleration * dt);
+          velocity.y += (desiredVY - velocity.y) * Math.min(1, acceleration * dt);
+          position.x = clamp(position.x + velocity.x * dt, 4, win.innerWidth - width - 4);
+          position.y = clamp(position.y + velocity.y * dt, 4, win.innerHeight - height - 4);
           walker.style.left = `${position.x}px`;
           walker.style.top = `${position.y}px`;
 
-          if (Math.abs(target.x - (position.x + 30)) > 2) {
-            facing = target.x >= position.x + 30 ? 1 : -1;
-          }
+          const movingBody = Math.hypot(velocity.x, velocity.y) > 13;
+          sprite.classList.toggle('walking', movingBody && !reduceMotion.matches);
+          const facing = Math.abs(velocity.x) > 5 ? (velocity.x > 0 ? 1 : -1) : lastDirection;
           sprite.setAttribute('transform', facing > 0 ? '' : 'translate(120 0) scale(-1 1)');
 
-          const handX = position.x + (facing > 0 ? 60 : 18);
-          const handY = position.y + 64;
-          const dx = target.x - handX;
-          const dy = target.y - handY;
-          const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-          lantern.setAttribute('transform', `rotate(${clamp(angle, -72, 72)} 91 78)`);
+          const handX = position.x + (facing > 0 ? 91 : 29);
+          const handY = position.y + 46;
+          const aimX = cursor.x - handX;
+          const aimY = cursor.y - handY;
+          // SVG lantern points right at zero degrees; flip angle for left-facing sprite.
+          let angle = Math.atan2(aimY, Math.abs(aimX)) * 180 / Math.PI;
+          if (aimX < 0) angle = -angle;
+          lantern.setAttribute('transform', `rotate(${clamp(angle, -78, 78)} 91 78)`);
 
-          win.requestAnimationFrame(step);
+          win.requestAnimationFrame(animate);
         }
 
-        win.requestAnimationFrame(step);
+        const onResize = () => {
+          resizeCanvas();
+          position.x = clamp(position.x, 4, win.innerWidth - width - 4);
+          position.y = clamp(position.y, 4, win.innerHeight - height - 4);
+        };
+        win.addEventListener('resize', onResize, { passive: true });
+        doc.addEventListener('pointermove', onPointerMove, { passive: true, capture: true });
+        doc.addEventListener('pointerleave', onPointerLeave, { passive: true });
+        const frameId = win.requestAnimationFrame(animate);
 
-        win.addEventListener('resize', () => {
-          position.x = clamp(position.x, 8, win.innerWidth - size.width - 8);
-          position.y = clamp(position.y, 8, win.innerHeight - size.height - 8);
-        }, { passive: true });
+        cleanup = () => {
+          win.cancelAnimationFrame(frameId);
+          win.removeEventListener('resize', onResize);
+          doc.removeEventListener('pointermove', onPointerMove, true);
+          doc.removeEventListener('pointerleave', onPointerLeave);
+          style.remove();
+          wrap.remove();
+          delete win.__olliEffectsCleanup;
+        };
+        win.__olliEffectsCleanup = cleanup;
       } catch (_) {
-        // Ignore embedded-browser restrictions.
+        // Ignore browser restrictions for embedded components.
       }
     })();
     </script>
