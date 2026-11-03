@@ -24,30 +24,25 @@ st.set_page_config(
 # Injeção de CSS de Última Geração (Estilo Awwwards / Vercel Premium)
 st.markdown("""
 <style>
-    /* Importando fonte tecnológica */
     @import url('https://googleapis.com');
     
-    /* Configuração Global do Dark Mode Absoluto */
     html, body, [data-testid="stAppViewContainer"], .main {
         background-color: #0B071E !important;
         color: #E2E8F0 !important;
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
     
-    /* Customização da Sidebar Futurista */
     [data-testid="stSidebar"] {
         background-color: #070414 !important;
         border-right: 1px solid rgba(124, 58, 237, 0.2);
     }
     
-    /* Títulos em Fonte Geométrica */
     h1, h2, h3 {
         font-family: 'Space Grotesk', sans-serif !important;
         font-weight: 700 !important;
         letter-spacing: -0.02em;
     }
     
-    /* Cabeçalho Principal Neon */
     .cyber-title {
         background: linear-gradient(135deg, #A855F7 0%, #7C3AED 50%, #06B6D4 100%);
         -webkit-background-clip: text;
@@ -58,7 +53,6 @@ st.markdown("""
         text-shadow: 0 0 40px rgba(124, 58, 237, 0.3);
     }
     
-    /* Barra de Busca com Efeito HUD de Escaneamento */
     div[data-testid="stTextInput"] input {
         background-color: rgba(15, 10, 36, 0.6) !important;
         color: #06B6D4 !important;
@@ -75,7 +69,6 @@ st.markdown("""
         transform: scale(1.01);
     }
 
-    /* Botões Premium com Animação de Onda Magnética e Ripple Elétrico no Clique */
     div.stButton > button {
         background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%) !important;
         color: #ffffff !important;
@@ -107,7 +100,6 @@ st.markdown("""
         100% { box-shadow: 0 0 50px rgba(6, 182, 212, 0); }
     }
 
-    /* Cards Holográficos de Provedores (Glassmorphism de Alto Padrão) */
     .hologram-card {
         background: rgba(20, 14, 56, 0.4) !important;
         backdrop-filter: blur(16px) saturate(180%);
@@ -125,21 +117,7 @@ st.markdown("""
         border-color: rgba(6, 182, 212, 0.6);
         box-shadow: 0 20px 40px rgba(124, 58, 237, 0.15), 0 0 30px rgba(6, 182, 212, 0.1);
     }
-    
-    /* Decoração de Canto estilo HUD */
-    .hologram-card::before {
-        content: '';
-        position: absolute;
-        top: 0; right: 0;
-        width: 12px; height: 12px;
-        border-top: 2px solid #06B6D4;
-        border-right: 2px solid #06B6D4;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    .hologram-card:hover::before { opacity: 1; }
 
-    /* Indicadores de Métricas (KPIs Corporativos de Alta Performance) */
     .kpi-container-futuristic {
         background: linear-gradient(145deg, rgba(26, 18, 70, 0.5) 0%, rgba(11, 7, 30, 0.8) 100%);
         border-left: 4px solid #7C3AED;
@@ -160,10 +138,8 @@ st.markdown("""
         font-family: 'Space Grotesk', sans-serif;
         font-weight: 700;
         margin-top: 5px;
-        text-shadow: 0 0 20px rgba(255,255,255,0.1);
     }
 
-    /* Gráfico de Latência de última geração */
     .latency-bar-bg {
         background: rgba(255,255,255,0.05);
         border-radius: 6px;
@@ -176,14 +152,17 @@ st.markdown("""
         background: linear-gradient(90deg, #7C3AED, #06B6D4);
         height: 100%;
         border-radius: 6px;
-        animation: networkScan 2s infinite linear;
     }
 
-    /* Animação Laser de Varredura para Itens em Carregamento */
-    @keyframes networkScan {
-        0% { opacity: 0.7; }
-        50% { opacity: 1; }
-        100% { opacity: 0.7; }
+    /* Caixa AI Matrix Premium */
+    .ai-matrix-response {
+        background: rgba(6, 182, 212, 0.05) !important;
+        border: 1px dashed rgba(6, 182, 212, 0.3) !important;
+        border-radius: 12px;
+        padding: 20px;
+        color: #06B6D4;
+        font-family: 'Space Grotesk', monospace;
+        margin-top: 15px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -192,7 +171,6 @@ st.markdown("""
 # MÓDULO DE AUDITORIA, TELEMETRIA E LOGS
 # =====================================================================
 def registrar_log(mensagem: str, usuario: str = "Sistema"):
-    """Registra eventos críticos em um arquivo local para governança de dados."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_linha = f"[{timestamp}] [{usuario}] {mensagem}\n"
     try:
@@ -206,67 +184,114 @@ def registrar_log(mensagem: str, usuario: str = "Sistema"):
 # =====================================================================
 DADOS_INICIAIS_MOCK = [
     {
-        "ID": "ISP-701",
-        "Status Contato": "Qualificado",
-        "Provedor": "Alpha Fibra Telecom",
-        "Responsáveis": "Carlos Silva",
-        "Cargo": "Diretor de Operações",
-        "Localidade": "Chapecó - SC",
-        "Telefone": "(49) 3321-1000",
-        "Email": "diretoria@alphafibra.com.br",
+        "ID": "ISP-701", "Status Contato": "Qualificado", "Provedor": "Alpha Fibra Telecom",
+        "Responsáveis": "Carlos Silva", "Cargo": "Diretor de Operações", "Localidade": "Chapecó - SC",
+        "Telefone": "(49) 3321-1000", "Email": "diretoria@alphafibra.com.br",
         "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região",
-        "Produto Olli": "Olli Smart Home",
-        "CNPJ": "31.862.534/0001-30",
-        "Clientes Estimados": 12000,
-        "Ticket Médio (R$)": 89.90,
-        "Data Cadastro": "2026-01-10",
-        "Score Conectividade": 88,
-        "Origem Lead": "Outbound LinkedIn"
+        "Produto Olli": "Olli Smart Home", "CNPJ": "31.862.534/0001-30", "Clientes Estimados": 12000,
+        "Ticket Médio (R$)": 89.90, "Data Cadastro": "2026-01-10", "Score Conectividade": 88, "Origem Lead": "Outbound LinkedIn"
     },
     {
-        "ID": "ISP-702",
-        "Status Contato": "Não Chamado",
-        "Provedor": "Beta Net Telecom",
-        "Responsáveis": "Rodrigo Ramos",
-        "Cargo": "CEO",
-        "Localidade": "Blumenau - SC",
-        "Telefone": "(47) 3211-5500",
-        "Email": "rodrigo@betanet.net.br",
+        "ID": "ISP-702", "Status Contato": "Não Chamado", "Provedor": "Beta Net Telecom",
+        "Responsáveis": "Rodrigo Ramos", "Cargo": "CEO", "Localidade": "Blumenau - SC",
+        "Telefone": "(47) 3211-5500", "Email": "rodrigo@betanet.net.br",
         "Situação de Mercado": "Churn Alto detectado em relatórios ANATEL",
-        "Produto Olli": "Olli Habita",
-        "CNPJ": "14.552.112/0001-99",
-        "Clientes Estimados": 7500,
-        "Ticket Médio (R$)": 79.90,
-        "Data Cadastro": "2026-02-15",
-        "Score Conectividade": 45,
-        "Origem Lead": "Mapeamento ANATEL"
+        "Produto Olli": "Olli Habita", "CNPJ": "14.552.112/0001-99", "Clientes Estimados": 7500,
+        "Ticket Médio (R$)": 79.90, "Data Cadastro": "2026-02-15", "Score Conectividade": 45, "Origem Lead": "Mapeamento ANATEL"
     },
     {
-        "ID": "ISP-703",
-        "Status Contato": "Agendado (Reunião)",
-        "Provedor": "Wave Conectividade",
-        "Responsáveis": "Juliana Mendes",
-        "Cargo": "Gerente de Marketing",
-        "Localidade": "Maringá - PR",
-        "Telefone": "(44) 99881-2233",
-        "Email": "juliana@waveconect.com.br",
+        "ID": "ISP-703", "Status Contato": "Agendado (Reunião)", "Provedor": "Wave Conectividade",
+        "Responsáveis": "Juliana Mendes", "Cargo": "Gerente de Marketing", "Localidade": "Maringá - PR",
+        "Telefone": "(44) 99881-2233", "Email": "juliana@waveconect.com.br",
         "Situação de Mercado": "Estagnação de vendas / Sem Serviços de Valor Adicionado (SVA)",
-        "Produto Olli": "Olli Smart Home",
-        "CNPJ": "45.123.789/0001-02",
-        "Clientes Estimados": 24000,
-        "Ticket Médio (R$)": 110.00,
-        "Data Cadastro": "2026-03-22",
-        "Score Conectividade": 92,
-        "Origem Lead": "Inbound - Evento IXC"
+        "Produto Olli": "Olli Smart Home", "CNPJ": "45.123.789/0001-02", "Clientes Estimados": 24000,
+        "Ticket Médio (R$)": 110.00, "Data Cadastro": "2026-03-22", "Score Conectividade": 92, "Origem Lead": "Inbound - Evento IXC"
     }
 ]
 
 def inicializar_e_carregar_dados() -> pd.DataFrame:
-    """Garante a existência do banco de dados local com tratamento de integridade schema-level."""
     if not os.path.exists(ARQUIVO_BANCO_DADOS):
         df = pd.DataFrame(DADOS_INICIAIS_MOCK)
         df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
-        registrar_log("Base de dados corporativa inicializada com sucesso.")
         return df
-    try:
-        df = pd.read_csv(ARQUIVO_BANCO_DADOS, encoding="utf-8")
+    return pd.read_csv(ARQUIVO_BANCO_DADOS, encoding="utf-8")
+
+# =====================================================================
+# MOTOR COGNITIVO E ENGENHARIA DE PROMPTS PARA SDR
+# =====================================================================
+def gerar_abordagem_ia(provedor: str, responsavel: str, dor: str, produto: str) -> str:
+    """Simula o processamento do modelo LLM gerando uma cópia personalizada e cirúrgica de SDR."""
+    time.sleep(1.2)  # Simulação de latência de inferência
+    prompt_mockado = (
+        f"Olá {responsavel}, percebi o posicionamento da {provedor} na região. "
+        f"Sabendo que o cenário atual envolve '{dor}', desenhamos uma integração de ecossistema "
+        f"com o {produto} para blindar sua base contra churn e elevar seu ticket médio. "
+        f"Podemos abrir uma frequência de alinhamento estratégico esta semana?"
+    )
+    return prompt_mockado
+
+# =====================================================================
+# EXECUÇÃO DO FRONT-END E RENDERIZAÇÃO CYBER-LUXURY
+# =====================================================================
+df_provedores = inicializar_e_carregar_dados()
+
+# Header Principal
+st.markdown('<div class="cyber-title">⚡ Olli Hub Enterprise v2.0</div>', unsafe_allow_html=True)
+st.markdown('<p style="color: #94A3B8; font-size:1.1rem; margin-top:-10px;">SDR Intelligence Matrix & Real-time Network Mapping</p>', unsafe_allow_html=True)
+
+# Grid de Indicadores
+kpi1, kpi2, kpi3 = st.columns(3)
+with kpi1:
+st.markdown(f'Total Provedores{len(df_provedores)}', unsafe_allow_html=True)
+with kpi2:
+st.markdown(f'Market Share{df_provedores["Clientes Estimados"].sum():,}', unsafe_allow_html=True)
+with kpi3:
+st.markdown(f'Score Médio{int(df_provedores["Score Conectividade"].mean())}%', unsafe_allow_html=True)
+st.write("---")
+
+Seção de Busca HUD
+
+st.markdown('### 🔍 Escaneamento de Rede e Filtro Inteligente')
+termo_busca = st.text_input("Digite o nome do Provedor ou Cidade para iniciar a varredura...", placeholder="Ex: Alpha Fibra")
+df_filtrado = df_provedores[df_provedores["Provedor"].str.contains(termo_busca, case=False, na=False)] if termo_busca else df_provedores
+
+Renderizando os Cards Holográficos
+
+for index, row in df_filtrado.iterrows():
+col_card, col_action = st.columns([3, 1])
+with col_card:
+st.markdown(f"""
+
+
+{row['Provedor']}
+{row['ID']}
+
+
+📍 LOCALIDADE{row['Localidade']}
+🎯 PRODUTO OLLI{row['Produto Olli']}
+💼 RESPONSÁVEL{row['Responsáveis']} ({row['Cargo']})
+
+
+⚠️ SITUAÇÃO DE MERCADO / DOR
+{row['Situação de Mercado']}
+
+
+SCORE DE SAÚDE DA REDE ({row['Score Conectividade']}%)
+
+
+
+""", unsafe_allow_html=True)
+with col_action:
+st.write("", unsafe_allow_html=True)
+if st.button("Disparar IA Matrix", key=f"btn-{row['ID']}"):
+with st.spinner("🤖 Processando camadas cognitivas..."):
+abordagem = gerar_abordagem_ia(row['Provedor'], row['Responsáveis'], row['Situação de Mercado'], row['Produto Olli'])
+st.markdown(f"""
+
+🛰️ Abordagem Preditiva Gerada:
+
+
+{abordagem}
+
+""", unsafe_allow_html=True)
+registrar_log(f"Abordagem cognitiva calculada para {row['Provedor']}", "AI_ENGINE")
