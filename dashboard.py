@@ -5,6 +5,7 @@ from html import escape
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 # =====================================================================
 # CONFIGURAÇÕES
@@ -53,8 +54,13 @@ st.markdown(
             color: #E2E8F0 !important;
             border: 1px solid rgba(168, 85, 247, 0.4) !important;
             border-radius: 12px !important;
+            min-height: 46px;
         }
-        div.stButton > button {
+        div[data-testid="stTextInput"] input:focus {
+            border-color: #A855F7 !important;
+            box-shadow: 0 0 18px rgba(168, 85, 247, 0.28) !important;
+        }
+        div.stButton > button, div[data-testid="stFormSubmitButton"] button {
             width: 100%;
             background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%) !important;
             color: #fff !important;
@@ -63,7 +69,13 @@ st.markdown(
             font-family: 'Space Grotesk', sans-serif !important;
             font-weight: 600 !important;
             padding: 0.75rem 1rem !important;
+            transition: transform 0.2s ease, box-shadow 0.2s ease !important;
         }
+        div.stButton > button:hover, div[data-testid="stFormSubmitButton"] button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 22px rgba(168, 85, 247, 0.5) !important;
+        }
+        .search-hint { color: #94A3B8; font-size: 0.88rem; margin: -4px 0 12px; }
         .kpi-container {
             background: linear-gradient(145deg, rgba(26, 18, 70, 0.5), rgba(11, 7, 30, 0.85));
             border-left: 4px solid #7C3AED;
@@ -115,9 +127,79 @@ st.markdown(
             height: 100%;
             border-radius: 8px;
         }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+        }
     </style>
     """,
     unsafe_allow_html=True,
+)
+
+# Efeito visual decorativo: halo roxo/arco-íris que acompanha o ponteiro.
+# O iframe tenta registrar o movimento na página hospedeira; se o navegador
+# bloquear acesso entre frames, o efeito é simplesmente ignorado.
+components.html(
+    """
+    <script>
+    (() => {
+      try {
+        const host = window.parent;
+        const doc = host.document;
+        if (doc.getElementById('olli-cursor-glow')) return;
+
+        const glow = doc.createElement('div');
+        glow.id = 'olli-cursor-glow';
+        glow.style.cssText = `
+          position: fixed; left: 0; top: 0; width: 34px; height: 34px;
+          z-index: 2147483647; pointer-events: none; border-radius: 50%;
+          opacity: 0; transform: translate(-50%, -50%);
+          background: radial-gradient(circle,
+            rgba(255,255,255,.95) 0%, rgba(216,180,254,.88) 17%,
+            rgba(168,85,247,.72) 39%, rgba(124,58,237,.4) 60%,
+            rgba(34,211,238,.18) 76%, transparent 100%);
+          filter: blur(5px); mix-blend-mode: screen;
+          transition: opacity .18s ease;
+          box-shadow: 0 0 20px rgba(168,85,247,.8), 0 0 38px rgba(124,58,237,.55);
+        `;
+        doc.body.appendChild(glow);
+
+        let lastTrail = 0;
+        doc.addEventListener('pointermove', (event) => {
+          if (event.pointerType === 'touch' || host.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          glow.style.left = event.clientX + 'px';
+          glow.style.top = event.clientY + 'px';
+          glow.style.opacity = '1';
+
+          const now = performance.now();
+          if (now - lastTrail > 32) {
+            lastTrail = now;
+            const dot = doc.createElement('span');
+            dot.style.cssText = `
+              position: fixed; left: ${event.clientX}px; top: ${event.clientY}px;
+              width: 9px; height: 9px; z-index: 2147483646; pointer-events: none;
+              border-radius: 50%; transform: translate(-50%,-50%);
+              background: radial-gradient(circle, #fff 0%, #e9d5ff 22%, #a855f7 55%, #7c3aed 75%, transparent 100%);
+              box-shadow: 0 0 12px #a855f7, 0 0 22px rgba(124,58,237,.75);
+              opacity: .8; transition: opacity .55s ease, transform .55s ease;
+            `;
+            doc.body.appendChild(dot);
+            requestAnimationFrame(() => {
+              dot.style.opacity = '0';
+              dot.style.transform = 'translate(-50%,-50%) scale(2.8)';
+            });
+            host.setTimeout(() => dot.remove(), 600);
+          }
+        }, { passive: true });
+
+        doc.addEventListener('pointerleave', () => { glow.style.opacity = '0'; });
+      } catch (error) {
+        // Alguns navegadores impedem que componentes embutidos acessem a página.
+      }
+    })();
+    </script>
+    """,
+    height=0,
+    scrolling=False,
 )
 
 # =====================================================================
@@ -134,57 +216,30 @@ def registrar_log(mensagem: str, usuario: str = "Sistema") -> None:
 
 DADOS_INICIAIS_MOCK = [
     {
-        "ID": "ISP-701",
-        "Status Contato": "Qualificado",
-        "Provedor": "Alpha Fibra Telecom",
-        "Responsáveis": "Carlos Silva",
-        "Cargo": "Diretor de Operações",
-        "Localidade": "Chapecó - SC",
-        "Telefone": "(49) 3321-1000",
-        "Email": "diretoria@alphafibra.com.br",
+        "ID": "ISP-701", "Status Contato": "Qualificado", "Provedor": "Alpha Fibra Telecom",
+        "Responsáveis": "Carlos Silva", "Cargo": "Diretor de Operações", "Localidade": "Chapecó - SC",
+        "Telefone": "(49) 3321-1000", "Email": "diretoria@alphafibra.com.br",
         "Situação de Mercado": "Guerra de preço agressiva / Perda de margem na região",
-        "Produto Olli": "Olli Smart Home",
-        "CNPJ": "31.862.534/0001-30",
-        "Clientes Estimados": 12000,
-        "Ticket Médio (R$)": 89.90,
-        "Data Cadastro": "2026-01-10",
-        "Score Conectividade": 88,
+        "Produto Olli": "Olli Smart Home", "CNPJ": "31.862.534/0001-30", "Clientes Estimados": 12000,
+        "Ticket Médio (R$)": 89.90, "Data Cadastro": "2026-01-10", "Score Conectividade": 88,
         "Origem Lead": "Outbound LinkedIn",
     },
     {
-        "ID": "ISP-702",
-        "Status Contato": "Não Chamado",
-        "Provedor": "Beta Net Telecom",
-        "Responsáveis": "Rodrigo Ramos",
-        "Cargo": "CEO",
-        "Localidade": "Blumenau - SC",
-        "Telefone": "(47) 3211-5500",
-        "Email": "rodrigo@betanet.net.br",
+        "ID": "ISP-702", "Status Contato": "Não Chamado", "Provedor": "Beta Net Telecom",
+        "Responsáveis": "Rodrigo Ramos", "Cargo": "CEO", "Localidade": "Blumenau - SC",
+        "Telefone": "(47) 3211-5500", "Email": "rodrigo@betanet.net.br",
         "Situação de Mercado": "Churn alto detectado em relatórios ANATEL",
-        "Produto Olli": "Olli Habita",
-        "CNPJ": "14.552.112/0001-99",
-        "Clientes Estimados": 7500,
-        "Ticket Médio (R$)": 79.90,
-        "Data Cadastro": "2026-02-15",
-        "Score Conectividade": 45,
+        "Produto Olli": "Olli Habita", "CNPJ": "14.552.112/0001-99", "Clientes Estimados": 7500,
+        "Ticket Médio (R$)": 79.90, "Data Cadastro": "2026-02-15", "Score Conectividade": 45,
         "Origem Lead": "Mapeamento ANATEL",
     },
     {
-        "ID": "ISP-703",
-        "Status Contato": "Agendado (Reunião)",
-        "Provedor": "Wave Conectividade",
-        "Responsáveis": "Juliana Mendes",
-        "Cargo": "Gerente de Marketing",
-        "Localidade": "Maringá - PR",
-        "Telefone": "(44) 99881-2233",
-        "Email": "juliana@waveconect.com.br",
+        "ID": "ISP-703", "Status Contato": "Agendado (Reunião)", "Provedor": "Wave Conectividade",
+        "Responsáveis": "Juliana Mendes", "Cargo": "Gerente de Marketing", "Localidade": "Maringá - PR",
+        "Telefone": "(44) 99881-2233", "Email": "juliana@waveconect.com.br",
         "Situação de Mercado": "Estagnação de vendas / Sem serviços de valor agregado (SVA)",
-        "Produto Olli": "Olli Smart Home",
-        "CNPJ": "45.123.789/0001-02",
-        "Clientes Estimados": 24000,
-        "Ticket Médio (R$)": 110.00,
-        "Data Cadastro": "2026-03-22",
-        "Score Conectividade": 92,
+        "Produto Olli": "Olli Smart Home", "CNPJ": "45.123.789/0001-02", "Clientes Estimados": 24000,
+        "Ticket Médio (R$)": 110.00, "Data Cadastro": "2026-03-22", "Score Conectividade": 92,
         "Origem Lead": "Inbound - Evento IXC",
     },
 ]
@@ -225,7 +280,6 @@ def inicializar_e_carregar_dados() -> pd.DataFrame:
             df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
         except OSError as erro:
             registrar_log(f"Falha ao atualizar colunas do banco: {erro}", "ERRO")
-
     return df
 
 
@@ -244,8 +298,6 @@ def gerar_abordagem_ia(provedor: str, responsavel: str, dor: str, produto: str) 
 # INTERFACE
 # =====================================================================
 df_provedores = inicializar_e_carregar_dados()
-
-# Normaliza colunas numéricas para evitar erros em CSVs preenchidos manualmente.
 df_provedores["Clientes Estimados"] = pd.to_numeric(
     df_provedores["Clientes Estimados"], errors="coerce"
 ).fillna(0)
@@ -263,8 +315,7 @@ kpi1, kpi2, kpi3 = st.columns(3)
 with kpi1:
     st.markdown(
         f'<div class="kpi-container"><div class="kpi-title">Total Provedores</div>'
-        f'<div class="kpi-value">{len(df_provedores)}</div></div>',
-        unsafe_allow_html=True,
+        f'<div class="kpi-value">{len(df_provedores)}</div></div>', unsafe_allow_html=True,
     )
 with kpi2:
     total_clientes = int(df_provedores["Clientes Estimados"].sum())
@@ -282,12 +333,40 @@ with kpi3:
     )
 
 st.write("---")
-st.markdown("### 🔍 Escaneamento de Rede e Filtro Inteligente")
-termo_busca = st.text_input(
-    "Digite o nome do provedor ou cidade para iniciar a varredura...",
-    placeholder="Ex: Alpha Fibra",
+st.markdown("### 🔎 Busca de provedores")
+st.markdown(
+    '<div class="search-hint">Pesquise por nome do provedor ou cidade. Ex.: Alpha Fibra, Chapecó ou SC.</div>',
+    unsafe_allow_html=True,
 )
 
+with st.form("form_busca_provedor", clear_on_submit=False):
+    campo_busca, coluna_botao = st.columns([5, 1])
+    with campo_busca:
+        termo_digitado = st.text_input(
+            "Busca",
+            placeholder="Digite o nome do provedor ou a localidade...",
+            label_visibility="collapsed",
+            key="campo_busca_provedor",
+        )
+    with coluna_botao:
+        buscar = st.form_submit_button("🔍 Buscar")
+
+if "termo_busca_provedor" not in st.session_state:
+    st.session_state.termo_busca_provedor = ""
+if buscar:
+    st.session_state.termo_busca_provedor = termo_digitado.strip()
+
+col_resultado, col_limpar = st.columns([5, 1])
+with col_resultado:
+    if st.session_state.termo_busca_provedor:
+        st.caption(f"Busca ativa: {st.session_state.termo_busca_provedor}")
+with col_limpar:
+    if st.button("Limpar busca", key="limpar_busca"):
+        st.session_state.termo_busca_provedor = ""
+        st.session_state.campo_busca_provedor = ""
+        st.rerun()
+
+termo_busca = st.session_state.termo_busca_provedor
 if termo_busca:
     provedor_match = df_provedores["Provedor"].fillna("").astype(str).str.contains(
         termo_busca, case=False, na=False, regex=False
@@ -300,13 +379,11 @@ else:
     df_filtrado = df_provedores
 
 st.markdown("### 🔮 Mapeamento de Cartões Holográficos")
-
 if df_filtrado.empty:
-    st.info("Nenhum provedor encontrado com os critérios de busca informados.")
+    st.info("Nenhum provedor encontrado. Tente outro nome ou localidade.")
 
 for _, row in df_filtrado.iterrows():
     col_card, col_action = st.columns([4, 1])
-
     provedor_valor = str(row.get("Provedor", "Não informado"))
     responsavel_valor = str(row.get("Responsáveis", "Não informado"))
     dor_valor = str(row.get("Situação de Mercado", "Não informada"))
@@ -323,7 +400,6 @@ for _, row in df_filtrado.iterrows():
         responsavel = escape(responsavel_valor)
         cargo = escape(str(row.get("Cargo", "Não informado")))
         dor = escape(dor_valor)
-
         st.markdown(
             f"""
             <div class="hologram-card">
@@ -354,10 +430,7 @@ for _, row in df_filtrado.iterrows():
         if st.button("Disparar IA Matrix", key=f"btn_{lead_id}"):
             with st.spinner("🤖 Preparando sugestão de abordagem..."):
                 abordagem = gerar_abordagem_ia(
-                    provedor_valor,
-                    responsavel_valor,
-                    dor_valor,
-                    produto_valor,
+                    provedor_valor, responsavel_valor, dor_valor, produto_valor
                 )
             st.markdown(
                 '<div class="ai-response"><strong>🛰️ Abordagem sugerida:</strong><br><br>'
