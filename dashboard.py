@@ -348,7 +348,7 @@ components.html(
           const tipY = endY + ny * spread;
           const otherX = endX - nx * spread;
           const otherY = endY - ny * spread;
-          const path = `M ${lampX} ${lampY} Q ${(lampX + tipX) / 2} ${(lampY + tipY) / 2} ${tipX} ${tipY} Q ${endX} ${endY} ${otherX} ${otherY} Q ${(lampX + otherX) / 2} ${(lampY + otherY) / 2} ${lampX} ${lampY} Z`;
+          const path = `M ${lampX} ${lampY} Q ${(lampX + tipX) / 2} ${(lampY + tipY) / 2} ${tipX} ${tipY} Q ${endX} ${endY} ${otherX} ${otherY} Q ${(lampX + otherX) / 2} ${(lampY + otherY) / 2} ${lampX} ${lampY}`;
           beamPath.setAttribute('d', path);
           hazePath.setAttribute('d', path);
           const gradient = doc.getElementById('olliBeamGradient');
