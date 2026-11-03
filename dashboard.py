@@ -232,30 +232,44 @@ def registrar_log(mensagem: str, usuario: str = "Sistema") -> None:
         pass
 
 
-@st.cache_data(ttl=60, show_spinner=False)
-def carregar_dados() -> pd.DataFrame:
-    if not os.path.exists(ARQUIVO_BANCO_DADOS):
-        df = pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS)
-        df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
-        registrar_log("Base de dados inicializada.")
-        return df
-
-    try:
-        df = pd.read_csv(ARQUIVO_BANCO_DADOS, encoding="utf-8")
-    except (OSError, pd.errors.ParserError, UnicodeDecodeError) as erro:
-        registrar_log(f"Falha ao carregar banco de dados: {erro}", "ERRO")
+def normalizar_df(df: pd.DataFrame) -> pd.DataFrame:
+    if df is None:
         return pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS)
 
     for coluna in COLUNAS:
         if coluna not in df.columns:
             df[coluna] = 0 if coluna in ("Clientes Estimados", "Score Conectividade") else "Não Informado"
 
+    df = df.copy()
+    df["Clientes Estimados"] = pd.to_numeric(df["Clientes Estimados"], errors="coerce").fillna(0)
+    df["Score Conectividade"] = pd.to_numeric(df["Score Conectividade"], errors="coerce").fillna(0).clip(0, 100)
     return df
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def carregar_dados() -> pd.DataFrame:
+    if not os.path.exists(ARQUIVO_BANCO_DADOS):
+        df = pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS)
+        try:
+            df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
+        except OSError:
+            pass
+        registrar_log("Base de dados inicializada.")
+        return normalizar_df(df)
+
+    try:
+        df = pd.read_csv(ARQUIVO_BANCO_DADOS, encoding="utf-8")
+    except (OSError, pd.errors.ParserError, UnicodeDecodeError) as erro:
+        registrar_log(f"Falha ao carregar banco de dados: {erro}", "ERRO")
+        return normalizar_df(pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS))
+
+    return normalizar_df(df)
 
 
 def salvar_dados(df: pd.DataFrame) -> bool:
     try:
-        df.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
+        dados = normalizar_df(df)
+        dados.to_csv(ARQUIVO_BANCO_DADOS, index=False, encoding="utf-8")
         carregar_dados.clear()
         return True
     except OSError as erro:
@@ -264,6 +278,11 @@ def salvar_dados(df: pd.DataFrame) -> bool:
 
 
 def gerar_abordagem_ia(provedor: str, responsavel: str, dor: str, produto: str) -> str:
+    provedor = provedor or "o provedor"
+    responsavel = responsavel or "o responsável"
+    dor = dor or "a dor atual do mercado"
+    produto = produto or "a solução Olli"
+
     return (
         f"Olá {responsavel}, percebi o posicionamento da {provedor} na região e o cenário atual "
         f"envolvendo '{dor}'. O {produto} pode ajudar a fortalecer a percepção de valor, reduzir churn "
@@ -305,21 +324,15 @@ def mostrar_estado_vazio() -> None:
 # =====================================================================
 # DASHBOARD
 # =====================================================================
-if "termo_busca_provedor" not in st.session_state:
-    st.session_state.termo_busca_provedor = ""
-if "confirmar_exclusao" not in st.session_state:
-    st.session_state.confirmar_exclusao = None
-if "scroll_resultados" not in st.session_state:
-    st.session_state.scroll_resultados = False
+st.session_state.setdefault("termo_busca_provedor", "")
+st.session_state.setdefault("confirmar_exclusao", None)
+st.session_state.setdefault("scroll_resultados", False)
 
 # Carrega e padroniza dados
 try:
     df = carregar_dados().copy()
 except Exception:
-    df = pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS)
-
-df["Clientes Estimados"] = pd.to_numeric(df["Clientes Estimados"], errors="coerce").fillna(0)
-df["Score Conectividade"] = pd.to_numeric(df["Score Conectividade"], errors="coerce").fillna(0).clip(0, 100)
+    df = normalizar_df(pd.DataFrame(DADOS_INICIAIS, columns=COLUNAS))
 
 st.markdown('<div class="cyber-title">⚡ Olli Hub Enterprise v2.0</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">SDR Intelligence Matrix &amp; Real-time Network Mapping</div>', unsafe_allow_html=True)
@@ -365,11 +378,11 @@ with barra_busca:
 with barra_limpar:
     if st.button("Limpar", key="limpar_busca"):
         st.session_state.termo_busca_provedor = ""
-        st.session_state.campo_busca_provedor = ""
+        st.session_state["campo_busca_provedor"] = ""
         st.session_state.scroll_resultados = False
         st.rerun()
 
-termo = st.session_state.termo_busca_provedor
+termo = st.session_state.termo_busca_provedor.strip()
 if termo:
     prov_match = df["Provedor"].fillna("").astype(str).str.contains(termo, case=False, regex=False)
     local_match = df["Localidade"].fillna("").astype(str).str.contains(termo, case=False, regex=False)
@@ -402,7 +415,8 @@ else:
         responsavel_raw = str(row.get("Responsáveis", "Não informado"))
         dor_raw = str(row.get("Situação de Mercado", "Não informada"))
         produto_raw = str(row.get("Produto Olli", "Não informado"))
-        score = max(0, min(100, int(row.get("Score Conectividade", 0))))
+        score = int(pd.to_numeric(row.get("Score Conectividade", 0), errors="coerce")) if pd.notna(row.get("Score Conectividade", 0)) else 0
+        score = max(0, min(100, score))
 
         card_col, action_col = st.columns([4, 1])
 
