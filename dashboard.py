@@ -10,6 +10,8 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
+from radar_provedores import buscar_provedores_web
+
 # =====================================================================
 # CONFIGURAÇÃO
 # =====================================================================
@@ -484,6 +486,7 @@ COLUNAS = [
     "ID", "Status Contato", "Provedor", "Responsáveis", "Cargo", "Localidade", "Telefone", "Email",
     "Situação de Mercado", "Produto Olli", "CNPJ", "Clientes Estimados", "Ticket Médio (R$)",
     "Data Cadastro", "Score Conectividade", "Origem Lead",
+    "Site", "Stack Detectada", "Motivo do Encaixe", "Fontes",
 ]
 COLUNAS_NUMERICAS = ("Clientes Estimados", "Ticket Médio (R$)", "Score Conectividade")
 
@@ -740,6 +743,7 @@ def limpar_busca() -> None:
     # Callback: roda antes dos widgets serem criados, então pode alterar o estado do campo.
     st.session_state.termo_busca_provedor = ""
     st.session_state["campo_busca_provedor"] = ""
+    st.session_state.ids_radar = []
     st.session_state.scroll_resultados = False
 
 
@@ -801,6 +805,19 @@ with st.form("form_busca_provedor", clear_on_submit=False):
 if buscar:
     st.session_state.termo_busca_provedor = termo_digitado.strip()
     st.session_state.scroll_resultados = True
+    st.session_state.ids_radar = []
+    if st.session_state.termo_busca_provedor:
+        with st.spinner("Varrendo a web: fontes, CNPJ, PeeringDB e stack..."):
+            try:
+                novos = pd.DataFrame(buscar_provedores_web(st.session_state.termo_busca_provedor), columns=COLUNAS)
+            except Exception as erro:
+                novos = pd.DataFrame(columns=COLUNAS)
+                st.error(f"Radar indisponível: {erro}")
+        if not novos.empty:
+            df = normalizar_df(pd.concat([df, novos], ignore_index=True).drop_duplicates("ID", keep="last"))
+            salvar_dados(df)
+            st.session_state.ids_radar = novos["ID"].tolist()
+            st.toast(f"{len(novos)} provedor(es) encontrado(s) na web", icon="🛰️")
 
 barra_busca, barra_limpar = st.columns([5, 1])
 with barra_busca:
@@ -811,6 +828,9 @@ with barra_limpar:
 
 termo = st.session_state.termo_busca_provedor.strip()
 resultados = filtrar_leads(df, termo, filtro_status, filtro_produto, score_minimo, ordem)
+ids_radar = st.session_state.get("ids_radar", [])
+if ids_radar and termo:
+    resultados = pd.concat([df[df["ID"].isin(ids_radar)], resultados]).drop_duplicates("ID")
 
 with st.sidebar:
     st.download_button(
