@@ -758,21 +758,33 @@ def pedir_exclusao(lead_id: str | None) -> None:
 # =====================================================================
 # RADAR DE PROVEDORES (WEB)
 # =====================================================================
+# Etapas:
+#   1. descoberta      -> Claude com busca web + PeeringDB (por nome e por cidade)
+#   2. enriquecimento  -> CNPJ (BrasilAPI), PeeringDB (ASN, IX) e stack do site
+#   3. análise         -> Claude lê as dores com fontes e mede o encaixe com o Olli
+#   4. lead            -> registro no formato da base (COLUNAS)
+# Sem ANTHROPIC_API_KEY o radar segue por PeeringDB, CNPJ e site; só perde a análise.
+
+
+class SemResultados(Exception):
+    """Busca válida sem provedores. Exceções não entram no cache, então a próxima tentativa é real."""
+
+
+# ----- Configuração ----------------------------------------------------------
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 MODELO = os.getenv("OLLI_MODELO", "claude-sonnet-5-5")
 CABECALHO_HTTP = {"User-Agent": "OlliHubRadar/2.0 (pesquisa comercial B2B)"}
 TIMEOUT = 15
-MAX_CANDIDATOS = 5
+MAX_CANDIDATOS = 8
+TIPOS_ISP_PEERINGDB = {"Cable/DSL/ISP", "NSP"}
+PALAVRAS_GENERICAS = {"provedor", "provedores", "internet", "isp", "de", "da", "do", "em", "e"}
 
-# ----- Perfil de cliente (ICP): ajuste aqui ----------------------------------
-# CNAEs de telecomunicações (Receita Federal). Fora dessa lista, o encaixe é limitado.
+# Perfil de cliente (ICP): ajuste aqui
 CNAES_TELECOM = {"6110801", "6110802", "6120500", "6130200", "6141800", "6190601", "6190699"}
 PRODUTOS_OLLI = {
-    # TODO: descreva o benefício de cada produto. O Claude usa isso para medir o encaixe.
-    "Olli Smart Home": "a preencher",
+    "Olli Smart Home": "a preencher",  # TODO: descreva o benefício; o Claude usa isso para medir o encaixe
     "Olli Habita": "a preencher",
 }
-# Padrões no HTML do site que indicam ferramentas usadas pelo provedor.
 ASSINATURAS_STACK = {
     "WordPress": [r"wp-content", r"wp-includes"],
     "WhatsApp": [r"wa\.me/", r"api\.whatsapp\.com"],
@@ -793,6 +805,7 @@ ASSINATURAS_STACK = {
 }
 
 
+# ----- Utilidades ------------------------------------------------------------
 def _so_digitos(texto) -> str:
     return re.sub(r"\D", "", str(texto or ""))
 
@@ -801,8 +814,18 @@ def _formatar_cnpj(d: str) -> str:
     return f"{d[:2]}.{d[2:5]}.{d[5:8]}/{d[8:12]}-{d[12:]}"
 
 
+def _chave_nome(nome) -> str:
+    return re.sub(r"[^a-z0-9]", "", str(nome).lower())[:24]
+
+
+def _termo_pesquisa(termo: str) -> str:
+    """Tira palavras genéricas ('provedor de internet em') para casar melhor com nomes e cidades."""
+    palavras = [p for p in re.split(r"\s+", termo.strip()) if p and p.lower() not in PALAVRAS_GENERICAS]
+    return " ".join(palavras) or termo.strip()
+
+
 def _json(texto: str):
-    """Extrai o primeiro array ou objeto JSON de uma resposta do modelo."""
+    """Primeiro array ou objeto JSON encontrado na resposta do modelo."""
     m = re.search(r"(\[.*\]|\{.*\})", texto or "", re.S)
     try:
         return json.loads(m.group(1)) if m else None
@@ -810,10 +833,20 @@ def _json(texto: str):
         return None
 
 
-def _chamar_claude(prompt: str, usos_busca: int = 4) -> str:
+def _get_json(url: str, params: dict | None = None):
+    """GET tolerante: falha de rede ou de formato vira None, sem derrubar a busca."""
+    try:
+        r = requests.get(url, params=params, headers=CABECALHO_HTTP, timeout=TIMEOUT)
+        return r.json() if r.status_code == 200 else None
+    except (requests.RequestException, ValueError):
+        return None
+
+
+def _claude(prompt: str, usos_busca: int = 4) -> str:
+    """Chama a API com busca web. Sem chave devolve vazio; o radar segue sem essa etapa."""
     chave = os.getenv("ANTHROPIC_API_KEY")
     if not chave:
-        raise RuntimeError("defina a variável de ambiente ANTHROPIC_API_KEY")
+        return ""
     cabecalhos = {"x-api-key": chave, "anthropic-version": "2023-06-01", "content-type": "application/json"}
     ferramenta = {
         "type": "web_search_20250305",
@@ -822,7 +855,7 @@ def _chamar_claude(prompt: str, usos_busca: int = 4) -> str:
         "user_location": {"type": "approximate", "country": "BR"},
     }
     mensagens = [{"role": "user", "content": prompt}]
-    for _ in range(3):  # stop_reason "pause_turn": reenvia a mesma conversa para continuar a busca
+    for _ in range(3):  # pause_turn: reenvia a mesma conversa para a busca continuar
         r = requests.post(
             ANTHROPIC_URL,
             headers=cabecalhos,
@@ -837,51 +870,78 @@ def _chamar_claude(prompt: str, usos_busca: int = 4) -> str:
     return ""
 
 
+# ----- 1. Descoberta ---------------------------------------------------------
+def _descobrir_claude(termo: str) -> list[dict]:
+    prompt = f"""Encontre provedores de internet (ISPs) brasileiros relacionados a: "{termo}".
+Pesquise na web: sites oficiais, Anatel, notícias, Google Maps e redes sociais.
+Responda APENAS com um array JSON de até {MAX_CANDIDATOS} itens:
+[{{"nome": "...", "site": "dominio.com.br ou null", "cnpj": "14 dígitos ou null", "cidade": "...", "uf": "XX"}}]
+Não invente CNPJ, site ou cidade: use null quando não confirmar."""
+    dados = _json(_claude(prompt, usos_busca=5))
+    return dados if isinstance(dados, list) else []
+
+
+def _descobrir_peeringdb(termo: str) -> list[dict]:
+    """PeeringDB sem chave: redes com nome parecido e redes presentes em datacenters da cidade."""
+    alvo = _termo_pesquisa(termo)
+    redes = (_get_json("https://www.peeringdb.com/api/net", {"name__contains": alvo}) or {}).get("data", [])
+    fac = (_get_json("https://www.peeringdb.com/api/fac", {"city__contains": alvo, "limit": 20}) or {}).get("data", [])
+    if fac:
+        ids_fac = ",".join(str(f["id"]) for f in fac)
+        presencas = (_get_json("https://www.peeringdb.com/api/netfac", {"fac_id__in": ids_fac}) or {}).get("data", [])
+        ids_redes = ",".join(str(i) for i in sorted({p["net_id"] for p in presencas})[:100])
+        if ids_redes:
+            redes += (_get_json("https://www.peeringdb.com/api/net", {"id__in": ids_redes}) or {}).get("data", [])
+    candidatos, vistos = [], set()
+    for rede in redes:
+        if rede.get("info_type") not in TIPOS_ISP_PEERINGDB or rede["id"] in vistos:
+            continue
+        vistos.add(rede["id"])
+        candidatos.append({
+            "nome": rede.get("name"), "site": rede.get("website") or None,
+            "cnpj": None, "cidade": "", "uf": "",
+        })
+    return candidatos
+
+
+def _unir_candidatos(candidatos: list[dict]) -> list[dict]:
+    unidos, vistos = [], set()
+    for c in candidatos:
+        if not isinstance(c, dict) or not c.get("nome"):
+            continue
+        chave = _so_digitos(c.get("cnpj")) or _chave_nome(c["nome"])
+        if chave in vistos:
+            continue
+        vistos.add(chave)
+        unidos.append(c)
+    return unidos[:MAX_CANDIDATOS]
+
+
+# ----- 2. Enriquecimento -----------------------------------------------------
 def consultar_cnpj(cnpj) -> dict:
     digitos = _so_digitos(cnpj)
     if len(digitos) != 14:
         return {}
-    try:
-        r = requests.get(f"https://brasilapi.com.br/api/cnpj/v1/{digitos}", headers=CABECALHO_HTTP, timeout=TIMEOUT)
-        return r.json() if r.status_code == 200 else {}
-    except (requests.RequestException, ValueError):
-        return {}
+    return _get_json(f"https://brasilapi.com.br/api/cnpj/v1/{digitos}") or {}
 
 
 def consultar_peeringdb(nome: str) -> dict:
-    try:
-        r = requests.get(
-            "https://www.peeringdb.com/api/net",
-            params={"name__contains": nome},
-            headers=CABECALHO_HTTP,
-            timeout=TIMEOUT,
-        )
-        redes = r.json().get("data", []) if r.status_code == 200 else []
-    except (requests.RequestException, ValueError):
-        return {}
+    redes = (_get_json("https://www.peeringdb.com/api/net", {"name__contains": nome}) or {}).get("data", [])
     if not redes:
         return {}
     rede = redes[0]
-    try:
-        ix = requests.get(
-            "https://www.peeringdb.com/api/netixlan",
-            params={"net_id": rede["id"]},
-            headers=CABECALHO_HTTP,
-            timeout=TIMEOUT,
-        )
-        pontos_ix = len(ix.json().get("data", []))
-    except (requests.RequestException, ValueError, KeyError):
-        pontos_ix = None
+    ix = (_get_json("https://www.peeringdb.com/api/netixlan", {"net_id": rede["id"]}) or {}).get("data")
     return {
         "asn": rede.get("asn"),
         "tipo": rede.get("info_type"),
         "trafego": rede.get("info_traffic"),
-        "pontos_ix": pontos_ix,
+        "site": rede.get("website") or None,
+        "pontos_ix": len(ix) if ix is not None else None,
     }
 
 
 def ler_site(site) -> tuple[list[str], str]:
-    """Lê só a página inicial, uma vez por provedor. Devolve (stack detectada, texto)."""
+    """Lê só a página inicial. Devolve (stack detectada, texto para a análise)."""
     if not site or str(site).lower() in ("null", "não informado"):
         return [], ""
     url = site if str(site).startswith("http") else f"https://{site}"
@@ -898,30 +958,26 @@ def ler_site(site) -> tuple[list[str], str]:
     return stack, re.sub(r"\s+", " ", unescape(sem_tags)).strip()
 
 
-def descobrir_provedores(termo: str) -> list[dict]:
-    prompt = f"""Encontre provedores de internet (ISPs) brasileiros relacionados a: "{termo}".
-Pesquise na web: sites oficiais, Anatel, notícias, Google Maps e redes sociais.
-Responda APENAS com um array JSON de até {MAX_CANDIDATOS} itens, no formato:
-[{{"nome": "...", "site": "dominio.com.br ou null", "cnpj": "14 dígitos ou null", "cidade": "...", "uf": "XX"}}]
-Não invente CNPJ, site ou cidade: use null quando não confirmar."""
-    dados = _json(_chamar_claude(prompt, usos_busca=5))
-    return dados[:MAX_CANDIDATOS] if isinstance(dados, list) else []
-
-
+# ----- 3. Análise ------------------------------------------------------------
 def analisar_provedor(candidato: dict, cnpj: dict, pdb: dict, stack: list[str], texto_site: str) -> dict:
+    if not os.getenv("ANTHROPIC_API_KEY"):
+        return {}
     produtos = "\n".join(f"- {nome}: {desc}" for nome, desc in PRODUTOS_OLLI.items())
-    campos_receita = ("razao_social", "nome_fantasia", "descricao_situacao_cadastral", "cnae_fiscal_descricao",
-                      "capital_social", "porte", "municipio", "uf")
-    receita = {k: cnpj.get(k) for k in campos_receita}
+    campos = ("razao_social", "nome_fantasia", "descricao_situacao_cadastral", "cnae_fiscal_descricao",
+              "capital_social", "porte", "municipio", "uf")
+    receita_txt = json.dumps({k: cnpj.get(k) for k in campos}, ensure_ascii=False)
+    candidato_txt = json.dumps(candidato, ensure_ascii=False)
+    pdb_txt = json.dumps(pdb, ensure_ascii=False)
+    stack_txt = ", ".join(stack) or "nada identificado"
     prompt = f"""Você analisa provedores de internet (ISPs) para o time de SDR do Olli.
 Produtos Olli:
 {produtos}
 
 Dados coletados de fontes públicas:
-- Candidato: {json.dumps(candidato, ensure_ascii=False)}
-- Receita Federal (BrasilAPI): {json.dumps(receita, ensure_ascii=False)}
-- PeeringDB: {json.dumps(pdb, ensure_ascii=False)}
-- Stack detectada no site: {", ".join(stack) or "nada identificado"}
+- Candidato: {candidato_txt}
+- Receita Federal (BrasilAPI): {receita_txt}
+- PeeringDB: {pdb_txt}
+- Stack detectada no site: {stack_txt}
 - Trecho da página inicial: {texto_site[:2000]}
 
 Pesquise na web reclamações, notícias, relatórios e vagas recentes para descobrir POR QUE esse
@@ -930,7 +986,7 @@ agregado, retrabalho no suporte etc.).
 Responda APENAS com JSON:
 {{"dores": [{{"dor": "...", "evidencia": "...", "fonte": "url"}}], "produto_recomendado": "nome ou null", "encaixe": 0-100, "motivo": "1 a 2 frases", "confianca": "alta|media|baixa"}}
 Regras: use só o que encontrou e cite a fonte. Sem evidência, dores = [] e encaixe baixo."""
-    dados = _json(_chamar_claude(prompt, usos_busca=4))
+    dados = _json(_claude(prompt, usos_busca=4))
     return dados if isinstance(dados, dict) else {}
 
 
@@ -947,10 +1003,14 @@ def _pontuar(analise: dict, cnpj: dict) -> int:
     return max(0, min(100, encaixe))
 
 
-def _montar_lead(candidato: dict, cnpj: dict, pdb: dict, stack: list[str], analise: dict) -> dict:
-    nome = candidato.get("nome") or cnpj.get("razao_social") or "Provedor sem nome"
-    dores = analise.get("dores") or []
-    dor_resumo = "; ".join(d.get("dor", "") for d in dores if d.get("dor")) or "Nenhuma dor confirmada nas fontes"
+# ----- 4. Lead ---------------------------------------------------------------
+def _montar_lead(candidato: dict, cnpj: dict, stack: list[str], analise: dict) -> dict:
+    nome = candidato["nome"]
+    dores = [d for d in (analise.get("dores") or []) if isinstance(d, dict)]
+    if analise:
+        dor = "; ".join(d.get("dor", "") for d in dores if d.get("dor")) or "Nenhuma dor confirmada nas fontes"
+    else:
+        dor = "Análise pendente (sem ANTHROPIC_API_KEY)"
     fontes = " | ".join(sorted({d.get("fonte", "") for d in dores if d.get("fonte")}))
     digitos = _so_digitos(candidato.get("cnpj") or cnpj.get("cnpj"))
     chave = digitos or hashlib.sha1(nome.lower().encode()).hexdigest()[:8].upper()
@@ -965,7 +1025,7 @@ def _montar_lead(candidato: dict, cnpj: dict, pdb: dict, stack: list[str], anali
         "Localidade": f"{cidade} - {uf}".strip(" -") or "Não Informada",
         "Telefone": cnpj.get("ddd_telefone_1") or "Não Informado",
         "Email": cnpj.get("email") or "Não Informado",
-        "Situação de Mercado": dor_resumo,
+        "Situação de Mercado": dor,
         "Produto Olli": analise.get("produto_recomendado") or "Não definido",
         "CNPJ": _formatar_cnpj(digitos) if len(digitos) == 14 else "Não Informado",
         "Clientes Estimados": 0,
@@ -975,34 +1035,60 @@ def _montar_lead(candidato: dict, cnpj: dict, pdb: dict, stack: list[str], anali
         "Origem Lead": "Radar Web",
         "Site": candidato.get("site") or "Não Informado",
         "Stack Detectada": ", ".join(stack) or "Não identificada",
-        "Motivo do Encaixe": analise.get("motivo") or "Não avaliado",
+        "Motivo do Encaixe": analise.get("motivo") or ("Não avaliado" if analise else "Análise pendente"),
         "Fontes": fontes or "Não encontradas",
     }
 
 
+# ----- Orquestração ----------------------------------------------------------
 def _processar(candidato: dict) -> dict:
     cnpj = consultar_cnpj(candidato.get("cnpj"))
-    nome_busca = candidato.get("nome") or cnpj.get("razao_social") or ""
-    pdb = consultar_peeringdb(nome_busca) if nome_busca else {}
-    stack, texto_site = ler_site(candidato.get("site"))
-    analise = analisar_provedor(candidato, cnpj, pdb, stack, texto_site)
-    return _montar_lead(candidato, cnpj, pdb, stack, analise)
+    pdb = consultar_peeringdb(candidato["nome"])
+    site = candidato.get("site") or pdb.get("site")
+    candidato = {**candidato, "site": site}
+    stack, texto = ler_site(site)
+    analise = analisar_provedor(candidato, cnpj, pdb, stack, texto)
+    return _montar_lead(candidato, cnpj, stack, analise)
 
 
 def _seguro(candidato: dict):
     try:
         return _processar(candidato)
-    except Exception:  # um provedor com falha não derruba a busca inteira
+    except Exception as erro:  # um provedor com falha não derruba a busca inteira
+        registrar_log(f"Falha ao processar {candidato.get('nome')}: {erro}", "RADAR")
         return None
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def buscar_provedores_web(termo: str) -> list[dict]:
-    """Cache de 1 hora por termo: cada busca gasta chamadas da API Claude."""
-    candidatos = descobrir_provedores(termo)
+    """Cacheado por 1 hora. Resultados vazios lançam SemResultados e não ficam no cache."""
+    avisos, descobertos = [], []
+    for fonte, funcao in (("Claude", _descobrir_claude), ("PeeringDB", _descobrir_peeringdb)):
+        try:
+            descobertos += funcao(termo)
+        except Exception as erro:
+            avisos.append(f"{fonte}: {erro}")
+    candidatos = _unir_candidatos(descobertos)
+    if not candidatos:
+        raise SemResultados(" | ".join(avisos) or "nenhum provedor encontrado para este termo.")
     with ThreadPoolExecutor(max_workers=4) as pool:
-        leads = list(pool.map(_seguro, candidatos))
-    return [lead for lead in leads if lead]
+        leads = [lead for lead in pool.map(_seguro, candidatos) if lead]
+    if not leads:
+        raise SemResultados("encontrei candidatos, mas nenhum pôde ser processado.")
+    return leads
+
+
+def executar_busca_web(termo: str) -> pd.DataFrame:
+    if not os.getenv("ANTHROPIC_API_KEY"):
+        st.info("ANTHROPIC_API_KEY não definida: a busca usa PeeringDB, CNPJ e site, sem análise de dores.")
+    with st.spinner(f"Varrendo a web por provedores de '{termo}'..."):
+        try:
+            return pd.DataFrame(buscar_provedores_web(termo), columns=COLUNAS)
+        except SemResultados as aviso:
+            st.warning(f"Nenhum provedor novo para '{termo}'. Detalhe: {aviso}")
+        except Exception as erro:
+            st.error(f"Radar indisponível: {erro}")
+    return pd.DataFrame(columns=COLUNAS)
 
 
 # =====================================================================
@@ -1061,12 +1147,7 @@ if buscar:
     st.session_state.scroll_resultados = True
     st.session_state.ids_radar = []
     if st.session_state.termo_busca_provedor:
-        with st.spinner("Varrendo a web: fontes, CNPJ, PeeringDB e stack..."):
-            try:
-                novos = pd.DataFrame(buscar_provedores_web(st.session_state.termo_busca_provedor), columns=COLUNAS)
-            except Exception as erro:
-                novos = pd.DataFrame(columns=COLUNAS)
-                st.error(f"Radar indisponível: {erro}")
+        novos = executar_busca_web(st.session_state.termo_busca_provedor)
         if not novos.empty:
             df = normalizar_df(pd.concat([df, novos], ignore_index=True).drop_duplicates("ID", keep="last"))
             salvar_dados(df)
